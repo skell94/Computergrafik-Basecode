@@ -91,6 +91,62 @@ public class cylinder {
 		}
 		
 		/**
+		 * create VertexData for Torus
+		 * 
+		 * @param r the render context, innerR the inner radius, outerR the outer radius
+		 */
+		private VertexData torus(RenderContext r, float innerR, float outerR){
+			int innerSections = 50;
+			int outerSections = 50;
+			// The vertex positions of the torus
+			ArrayList<Float> vList = new ArrayList<Float>();
+			for(int i=0; i<innerSections; ++i){
+				double innerAngle = i*(1.0/innerSections)*2*Math.PI;
+				for(int j=0; j<outerSections; ++j){
+					double outerAngle = j*(1.0/outerSections)*2*Math.PI;
+					vList.addAll(Arrays.asList((float)(Math.sin(innerAngle)*(outerR*Math.cos(outerAngle)+innerR)), (float)(Math.cos(innerAngle)*(outerR*Math.cos(outerAngle)+innerR)), (float)(Math.sin(outerAngle)*outerR)));
+				}
+			}
+			float v[] = new float[vList.size()];
+			for(int i=0; i<vList.size(); ++i){
+				v[i] = vList.get(i);
+			}
+			
+			// The colors
+			ArrayList<Float> cList = new ArrayList<Float>();
+			for(int i=0; i<innerSections; i+=2){
+				for(int j=0; j<outerSections; ++j)
+					cList.addAll(Arrays.asList(0.0f, 1.0f, 0.0f));
+				if(i+1 < innerSections)
+					for(int j=0; j<outerSections; ++j)
+							cList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f));
+			}
+			float c[] = new float[cList.size()];
+			for(int i=0; i<cList.size(); ++i){
+				c[i] = cList.get(i);
+			}
+			
+			// The triangles
+			ArrayList<Integer> iList = new ArrayList<Integer>();
+			for(int i=0; i<innerSections; ++i){
+				for(int j=0; j<outerSections; ++j){
+					iList.addAll(Arrays.asList(j+i*outerSections, j+((i+1)%innerSections)*outerSections, (j+1)%outerSections+i*outerSections));
+					iList.addAll(Arrays.asList(j+((i+1)%innerSections)*outerSections, (j+1)%outerSections+((i+1)%innerSections)*outerSections, (j+1)%outerSections+i*outerSections));
+				}
+			}
+			int indices[] = new int[iList.size()];
+			for(int i=0; i<iList.size(); ++i){
+				indices[i] = iList.get(i);
+			}
+			
+			VertexData vertexData = renderContext.makeVertexData(innerSections*outerSections);
+			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
+			vertexData.addElement(v, VertexData.Semantic.POSITION, 3);
+			vertexData.addIndices(indices);
+			return vertexData;
+		}
+		
+		/**
 		 * Initialization call-back. We initialize our renderer here.
 		 * 
 		 * @param r	the render context that is associated with this render panel
@@ -99,7 +155,7 @@ public class cylinder {
 		{
 			renderContext = r;
 			
-			VertexData vertexData = cylinder(renderContext, 50);
+			VertexData vertexData = torus(renderContext, 2.0f, 0.5f);
 								
 			// Make a scene manager and add the object
 			sceneManager = new SimpleSceneManager();
