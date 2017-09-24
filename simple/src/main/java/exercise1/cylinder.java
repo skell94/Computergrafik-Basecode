@@ -12,6 +12,9 @@ import jrtr.gldeferredrenderer.*;
 import javax.swing.*;
 import java.awt.event.*;
 import javax.vecmath.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -39,60 +42,45 @@ public class cylinder {
 		 */
 		private VertexData cylinder(RenderContext r, int n){
 			// The vertex positions of the cylinder
-			float v[] = new float[(2*n+2)*3];
-			v[v.length-6] = 0;
-			v[v.length-5] = 0;
-			v[v.length-4] = 3;
-			v[v.length-3] = 0;
-			v[v.length-2] = 0;
-			v[v.length-1] = -3;
-			
-			for(int i = 0; i < n*3; i+=3){
-				double angle = (i/3.0)*(1.0/n)*2*Math.PI;
-				v[i] = v[i+n*3] = (float) (Math.sin(angle));
-				v[i+1] = v[i+1+n*3] = (float) (Math.cos(angle));
-				v[i+2] = 3;
-				v[i+2+n*3] = -3;
+			ArrayList<Float> vList = new ArrayList<Float>();
+			for(int i=0; i<n; ++i){
+				double angle = i*(1.0/n)*2*Math.PI;
+				vList.addAll(Arrays.asList((float)(Math.sin(angle)), (float)(Math.cos(angle)), 3.0f));
+			}
+			for(int i=0; i<n; ++i){
+				double angle = i*(1.0/n)*2*Math.PI;
+				vList.addAll(Arrays.asList((float)(Math.sin(angle)), (float)(Math.cos(angle)), -3.0f));
+			}
+			vList.addAll(Arrays.asList(0.0f, 0.0f, 3.0f, 0.0f, 0.0f, -3.0f));
+			float v[] = new float[vList.size()];
+			for(int i=0; i<vList.size(); ++i){
+				v[i] = vList.get(i);
 			}
 			
 			// The colors
-			float c[] = new float[(2*n+2)*3];
-			c[c.length-6] = c[c.length-5] = c[c.length-4] = c[c.length-3] = c[c.length-2] = c[c.length-1] = 1;
-			
-			for(int i = 0; i< n*3; i+=6){
-				c[i] = c[i+2] = c[i+n*3] = c[i+2+n*3] = 0;
-				c[i+1] = c[i+1+n*3] = 1;
-				
-				if(i+3 < n*3){
-					c[i+3] = c[i+4] = c[i+3+n*3] = c[i+4+n*3] = 0;
-					c[i+5] = c[i+5+n*3] = 1;
-				}
+			ArrayList<Float> cList = new ArrayList<Float>();
+			for(int i=0; i<n; ++i){
+				cList.addAll(Arrays.asList(0.0f, 1.0f, 0.0f));
+				cList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f));
+			}
+			cList.addAll(Arrays.asList(1.0f, 1.0f, 1.0f));
+			cList.addAll(Arrays.asList(1.0f, 1.0f, 1.0f));
+			float c[] = new float[cList.size()];
+			for(int i=0; i<cList.size(); ++i){
+				c[i] = cList.get(i);
 			}
 			
 			// The triangles
-			int indices[] = new int[n*2*3*3];
-			for(int i = 0; i<n*3; i+=3){
-				int node = i/3;
-				
-				indices[i] = 2*n;
-				indices[i+1] = node;
-				indices[i+2] = (node+1)%n;
-				
-				indices[i+n*3] = 2*n+1;
-				indices[i+1+n*3] = node + n;
-				indices[i+2+n*3] = (node+1)%n + n;
+			ArrayList<Integer> iList = new ArrayList<Integer>();
+			for(int i=0; i<n; ++i){
+				iList.addAll(Arrays.asList(2*n, i, (i+1)%n));
+				iList.addAll(Arrays.asList(2*n+1, i+n, (i+1)%n+n));
+				iList.addAll(Arrays.asList(i, i+n, (i+1)%n));
+				iList.addAll(Arrays.asList(i+n, (i+1)%n+n, (i+1)%n));
 			}
-			for(int i = 0; i<n*6; i+=6){
-				int node = i/6;
-				int index = i+n*6;
-				
-				indices[index] = node;
-				indices[index+1] = node + n;
-				indices[index+2] = (node+1)%n;
-				
-				indices[index+3] = node + n;
-				indices[index+4] = (node+1)%n + n;
-				indices[index+5] = (node+1)%n;
+			int indices[] = new int[iList.size()];
+			for(int i=0; i<iList.size(); ++i){
+				indices[i] = iList.get(i);
 			}
 			
 			VertexData vertexData = renderContext.makeVertexData(2*n+2);
