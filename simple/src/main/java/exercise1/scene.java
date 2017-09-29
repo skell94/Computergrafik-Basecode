@@ -3,10 +3,10 @@ package exercise1;
 import jrtr.*;
 import jrtr.glrenderer.*;
 import src.main.java.exercise1.SWRenderPanel;
-import src.main.java.exercise1.cylinder.AnimationTask;
-import src.main.java.exercise1.cylinder.SimpleKeyListener;
-import src.main.java.exercise1.cylinder.SimpleMouseListener;
-import src.main.java.exercise1.cylinder.SimpleRenderPanel;
+import src.main.java.exercise1.scene.AnimationTask;
+import src.main.java.exercise1.scene.SimpleKeyListener;
+import src.main.java.exercise1.scene.SimpleMouseListener;
+import src.main.java.exercise1.scene.SimpleRenderPanel;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;
@@ -18,14 +18,14 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class cylinder {
+public class scene {
 	static RenderPanel renderPanel;
 	static RenderContext renderContext;
 	static Shader normalShader;
 	static Shader diffuseShader;
 	static Material material;
 	static SimpleSceneManager sceneManager;
-	static Shape shape;
+	static Shape[] shapes;
 	static float currentstep, basicstep;
 
 	/**
@@ -90,13 +90,100 @@ public class cylinder {
 			return vertexData;
 		}
 		
-		private void initCylinder(){
-			VertexData vertexData = cylinder(50);
+		/**
+		 * create VertexData for Torus
+		 * 
+		 * @param r the render context, innerR the inner radius, outerR the outer radius
+		 */
+		private VertexData torus(float innerR, float outerR){
+			int innerSections = 50;
+			int outerSections = 50;
+			// The vertex positions of the torus
+			ArrayList<Float> vList = new ArrayList<Float>();
+			for(int i=0; i<innerSections; ++i){
+				double innerAngle = i*(1.0/innerSections)*2*Math.PI;
+				for(int j=0; j<outerSections; ++j){
+					double outerAngle = j*(1.0/outerSections)*2*Math.PI;
+					vList.addAll(Arrays.asList((float)(Math.sin(innerAngle)*(outerR*Math.cos(outerAngle)+innerR)), (float)(Math.cos(innerAngle)*(outerR*Math.cos(outerAngle)+innerR)), (float)(Math.sin(outerAngle)*outerR)));
+				}
+			}
+			float v[] = new float[vList.size()];
+			for(int i=0; i<vList.size(); ++i){
+				v[i] = vList.get(i);
+			}
 			
-			// Make a scene manager and add the object
+			// The colors
+			ArrayList<Float> cList = new ArrayList<Float>();
+			for(int i=0; i<innerSections; i+=2){
+				for(int j=0; j<outerSections; ++j)
+					cList.addAll(Arrays.asList(0.0f, 1.0f, 0.0f));
+				if(i+1 < innerSections)
+					for(int j=0; j<outerSections; ++j)
+							cList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f));
+			}
+			float c[] = new float[cList.size()];
+			for(int i=0; i<cList.size(); ++i){
+				c[i] = cList.get(i);
+			}
+			
+			// The triangles
+			ArrayList<Integer> iList = new ArrayList<Integer>();
+			for(int i=0; i<innerSections; ++i){
+				for(int j=0; j<outerSections; ++j){
+					iList.addAll(Arrays.asList(j+i*outerSections, j+((i+1)%innerSections)*outerSections, (j+1)%outerSections+i*outerSections));
+					iList.addAll(Arrays.asList(j+((i+1)%innerSections)*outerSections, (j+1)%outerSections+((i+1)%innerSections)*outerSections, (j+1)%outerSections+i*outerSections));
+				}
+			}
+			int indices[] = new int[iList.size()];
+			for(int i=0; i<iList.size(); ++i){
+				indices[i] = iList.get(i);
+			}
+			
+			VertexData vertexData = renderContext.makeVertexData(innerSections*outerSections);
+			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
+			vertexData.addElement(v, VertexData.Semantic.POSITION, 3);
+			vertexData.addIndices(indices);
+			return vertexData;
+		}
+		
+		private void initScene() {
 			sceneManager = new SimpleSceneManager();
-			shape = new Shape(vertexData);
-			sceneManager.addShape(shape);
+			shapes = new Shape[4];
+			shapes[0] = new Shape(torus(1.0f, 0.2f));
+			shapes[1] = new Shape(torus(1.0f, 0.2f));
+			shapes[2] = new Shape(torus(1.0f, 0.2f));
+			shapes[3] = new Shape(torus(1.0f, 0.2f));
+			Matrix4f torusRot = new Matrix4f();
+			torusRot.rotX((float)(Math.PI/2));
+			
+			Matrix4f t = shapes[0].getTransformation();
+			Matrix4f transl = new Matrix4f();
+			transl.set(new Vector3f(-1.0f, 0.5f, -3.0f));
+			t.mul(torusRot);
+			t.mul(transl);
+			shapes[0].setTransformation(t);
+			
+			t = shapes[1].getTransformation();
+			transl.set(new Vector3f(-1.0f, 0.5f, -4.0f));
+			t.mul(torusRot);
+			t.mul(transl);
+			shapes[1].setTransformation(t);
+			
+			t = shapes[2].getTransformation();
+			transl.set(new Vector3f(1.0f, 0.5f, -3.0f));
+			t.mul(torusRot);
+			t.mul(transl);
+			shapes[2].setTransformation(t);
+			
+			t = shapes[3].getTransformation();
+			transl.set(new Vector3f(1.0f, 0.5f, -4.0f));
+			t.mul(torusRot);
+			t.mul(transl);
+			shapes[3].setTransformation(t);
+			
+			for(Shape shape: shapes) {
+				sceneManager.addShape(shape);
+			}
 		}
 		
 		/**
@@ -108,7 +195,7 @@ public class cylinder {
 		{
 			renderContext = r;
 			
-			initCylinder();
+			initScene();
 
 			// Add the scene to the renderer
 			renderContext.setSceneManager(sceneManager);
@@ -158,14 +245,13 @@ public class cylinder {
 		public void run()
 		{
 			// Update transformation by rotating with angle "currentstep"
-    		Matrix4f t = shape.getTransformation();
-    		Matrix4f rotX = new Matrix4f();
-    		rotX.rotX(currentstep);
     		Matrix4f rotY = new Matrix4f();
     		rotY.rotY(currentstep);
-    		t.mul(rotX);
-    		t.mul(rotY);
-    		shape.setTransformation(t);
+    		for(Shape shape : shapes) {
+    			Matrix4f t = shape.getTransformation();
+    			t.mul(rotY);
+        		shape.setTransformation(t);
+    		}
     		
     		// Trigger redrawing of the render window
     		renderPanel.getCanvas().repaint(); 
@@ -224,23 +310,27 @@ public class cylinder {
 				}
 				case 'n': {
 					// Remove material from shape, and set "normal" shader
-					shape.setMaterial(null);
+					for(Shape shape: shapes)
+						shape.setMaterial(null);
 					renderContext.useShader(normalShader);
 					break;
 				}
 				case 'd': {
 					// Remove material from shape, and set "default" shader
-					shape.setMaterial(null);
+					for(Shape shape: shapes)
+						shape.setMaterial(null);
 					renderContext.useDefaultShader();
 					break;
 				}
 				case 'm': {
 					// Set a material for more complex shading of the shape
-					if(shape.getMaterial() == null) {
-						shape.setMaterial(material);
+					if(shapes[0].getMaterial() == null) {
+						for(Shape shape: shapes)
+							shape.setMaterial(material);
 					} else
 					{
-						shape.setMaterial(null);
+						for(Shape shape: shapes)
+							shape.setMaterial(null);
 						renderContext.useDefaultShader();
 					}
 					break;

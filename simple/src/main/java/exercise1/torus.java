@@ -3,10 +3,10 @@ package exercise1;
 import jrtr.*;
 import jrtr.glrenderer.*;
 import src.main.java.exercise1.SWRenderPanel;
-import src.main.java.exercise1.cylinder.AnimationTask;
-import src.main.java.exercise1.cylinder.SimpleKeyListener;
-import src.main.java.exercise1.cylinder.SimpleMouseListener;
-import src.main.java.exercise1.cylinder.SimpleRenderPanel;
+import src.main.java.exercise1.torus.AnimationTask;
+import src.main.java.exercise1.torus.SimpleKeyListener;
+import src.main.java.exercise1.torus.SimpleMouseListener;
+import src.main.java.exercise1.torus.SimpleRenderPanel;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;
@@ -18,7 +18,7 @@ import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class cylinder {
+public class torus {
 	static RenderPanel renderPanel;
 	static RenderContext renderContext;
 	static Shader normalShader;
@@ -36,22 +36,22 @@ public class cylinder {
 	public final static class SimpleRenderPanel extends GLRenderPanel
 	{
 		/**
-		 * create VertexData for Cylinder
+		 * create VertexData for Torus
 		 * 
-		 * @param r the render context, n the number of sections the cylinder is divided into
+		 * @param r the render context, innerR the inner radius, outerR the outer radius
 		 */
-		private VertexData cylinder(int n){
-			// The vertex positions of the cylinder
+		private VertexData torus(float innerR, float outerR){
+			int innerSections = 50;
+			int outerSections = 50;
+			// The vertex positions of the torus
 			ArrayList<Float> vList = new ArrayList<Float>();
-			for(int i=0; i<n; ++i){
-				double angle = i*(1.0/n)*2*Math.PI;
-				vList.addAll(Arrays.asList((float)(Math.sin(angle)), (float)(Math.cos(angle)), 3.0f));
+			for(int i=0; i<innerSections; ++i){
+				double innerAngle = i*(1.0/innerSections)*2*Math.PI;
+				for(int j=0; j<outerSections; ++j){
+					double outerAngle = j*(1.0/outerSections)*2*Math.PI;
+					vList.addAll(Arrays.asList((float)(Math.sin(innerAngle)*(outerR*Math.cos(outerAngle)+innerR)), (float)(Math.cos(innerAngle)*(outerR*Math.cos(outerAngle)+innerR)), (float)(Math.sin(outerAngle)*outerR)));
+				}
 			}
-			for(int i=0; i<n; ++i){
-				double angle = i*(1.0/n)*2*Math.PI;
-				vList.addAll(Arrays.asList((float)(Math.sin(angle)), (float)(Math.cos(angle)), -3.0f));
-			}
-			vList.addAll(Arrays.asList(0.0f, 0.0f, 3.0f, 0.0f, 0.0f, -3.0f));
 			float v[] = new float[vList.size()];
 			for(int i=0; i<vList.size(); ++i){
 				v[i] = vList.get(i);
@@ -59,12 +59,13 @@ public class cylinder {
 			
 			// The colors
 			ArrayList<Float> cList = new ArrayList<Float>();
-			for(int i=0; i<n; ++i){
-				cList.addAll(Arrays.asList(0.0f, 1.0f, 0.0f));
-				cList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f));
+			for(int i=0; i<innerSections; i+=2){
+				for(int j=0; j<outerSections; ++j)
+					cList.addAll(Arrays.asList(0.0f, 1.0f, 0.0f));
+				if(i+1 < innerSections)
+					for(int j=0; j<outerSections; ++j)
+							cList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f));
 			}
-			cList.addAll(Arrays.asList(1.0f, 1.0f, 1.0f));
-			cList.addAll(Arrays.asList(1.0f, 1.0f, 1.0f));
 			float c[] = new float[cList.size()];
 			for(int i=0; i<cList.size(); ++i){
 				c[i] = cList.get(i);
@@ -72,31 +73,31 @@ public class cylinder {
 			
 			// The triangles
 			ArrayList<Integer> iList = new ArrayList<Integer>();
-			for(int i=0; i<n; ++i){
-				iList.addAll(Arrays.asList(2*n, i, (i+1)%n));
-				iList.addAll(Arrays.asList(2*n+1, i+n, (i+1)%n+n));
-				iList.addAll(Arrays.asList(i, i+n, (i+1)%n));
-				iList.addAll(Arrays.asList(i+n, (i+1)%n+n, (i+1)%n));
+			for(int i=0; i<innerSections; ++i){
+				for(int j=0; j<outerSections; ++j){
+					iList.addAll(Arrays.asList(j+i*outerSections, j+((i+1)%innerSections)*outerSections, (j+1)%outerSections+i*outerSections));
+					iList.addAll(Arrays.asList(j+((i+1)%innerSections)*outerSections, (j+1)%outerSections+((i+1)%innerSections)*outerSections, (j+1)%outerSections+i*outerSections));
+				}
 			}
 			int indices[] = new int[iList.size()];
 			for(int i=0; i<iList.size(); ++i){
 				indices[i] = iList.get(i);
 			}
 			
-			VertexData vertexData = renderContext.makeVertexData(2*n+2);
+			VertexData vertexData = renderContext.makeVertexData(innerSections*outerSections);
 			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
 			vertexData.addElement(v, VertexData.Semantic.POSITION, 3);
 			vertexData.addIndices(indices);
 			return vertexData;
 		}
 		
-		private void initCylinder(){
-			VertexData vertexData = cylinder(50);
-			
-			// Make a scene manager and add the object
-			sceneManager = new SimpleSceneManager();
-			shape = new Shape(vertexData);
-			sceneManager.addShape(shape);
+		private void initTorus(){
+				VertexData vertexData = torus(2.0f, 0.5f);
+				
+				// Make a scene manager and add the object
+				sceneManager = new SimpleSceneManager();
+				shape = new Shape(vertexData);
+				sceneManager.addShape(shape);
 		}
 		
 		/**
@@ -108,7 +109,7 @@ public class cylinder {
 		{
 			renderContext = r;
 			
-			initCylinder();
+			initTorus();
 
 			// Add the scene to the renderer
 			renderContext.setSceneManager(sceneManager);
