@@ -149,34 +149,34 @@ public class scene {
 		private void initScene() {
 			sceneManager = new SimpleSceneManager();
 			shapes = new Shape[4];
-			shapes[0] = new Shape(torus(1.0f, 0.2f));
-			shapes[1] = new Shape(torus(1.0f, 0.2f));
-			shapes[2] = new Shape(torus(1.0f, 0.2f));
-			shapes[3] = new Shape(torus(1.0f, 0.2f));
+			shapes[0] = new Shape(torus(0.5f, 0.1f));
+			shapes[1] = new Shape(torus(0.5f, 0.1f));
+			shapes[2] = new Shape(torus(0.5f, 0.1f));
+			shapes[3] = new Shape(torus(0.5f, 0.1f));
 			Matrix4f torusRot = new Matrix4f();
 			torusRot.rotX((float)(Math.PI/2));
 			
 			Matrix4f t = shapes[0].getTransformation();
 			Matrix4f transl = new Matrix4f();
-			transl.set(new Vector3f(-1.0f, 0.5f, -3.0f));
+			transl.set(new Vector3f(-1.0f, 3.0f, 0.5f));
 			t.mul(torusRot);
 			t.mul(transl);
 			shapes[0].setTransformation(t);
 			
 			t = shapes[1].getTransformation();
-			transl.set(new Vector3f(-1.0f, 0.5f, -4.0f));
+			transl.set(new Vector3f(-1.0f, 4.5f, 0.5f));
 			t.mul(torusRot);
 			t.mul(transl);
 			shapes[1].setTransformation(t);
 			
 			t = shapes[2].getTransformation();
-			transl.set(new Vector3f(1.0f, 0.5f, -3.0f));
+			transl.set(new Vector3f(1.0f, 3.0f, 0.5f));
 			t.mul(torusRot);
 			t.mul(transl);
 			shapes[2].setTransformation(t);
 			
 			t = shapes[3].getTransformation();
-			transl.set(new Vector3f(1.0f, 0.5f, -4.0f));
+			transl.set(new Vector3f(1.0f, 4.5f, 0.5f));
 			t.mul(torusRot);
 			t.mul(transl);
 			shapes[3].setTransformation(t);
@@ -245,13 +245,38 @@ public class scene {
 		public void run()
 		{
 			// Update transformation by rotating with angle "currentstep"
-    		Matrix4f rotY = new Matrix4f();
-    		rotY.rotY(currentstep);
-    		for(Shape shape : shapes) {
-    			Matrix4f t = shape.getTransformation();
-    			t.mul(rotY);
-        		shape.setTransformation(t);
-    		}
+    		Matrix4f rotZ = new Matrix4f();
+    		rotZ.rotZ(currentstep);
+    		
+    		double closeRadius = Math.sqrt(Math.pow(3,2)+Math.pow(1, 2));
+    		double closeAngle = Math.atan(1.0/3);
+    		double farRadius = Math.sqrt(Math.pow(4.5,2)+Math.pow(1, 2));
+    		double farAngle = Math.atan(1.0/4.5);
+    		
+    		Matrix4f wheelRot = new Matrix4f();
+			wheelRot.set(new Vector3f((float)(closeRadius*Math.sin(closeAngle+currentstep)+1),(float)(closeRadius*Math.cos(closeAngle+currentstep)-3), 0.0f));
+			Matrix4f t = shapes[0].getTransformation();
+//			t.mul(wheelRot);
+//			t.mul(rotZ);
+//			shapes[0].setTransformation(t);
+//			
+//			wheelRot.set(new Vector3f((float)(farRadius*Math.sin(farAngle+currentstep)+1),(float)(farRadius*Math.cos(farAngle+currentstep)-4.5), 0.0f));
+//			t = shapes[1].getTransformation();
+//			t.mul(wheelRot);
+//			t.mul(rotZ);
+//			shapes[1].setTransformation(t);
+			
+			wheelRot.set(new Vector3f((float)(closeRadius*Math.sin(closeAngle+currentstep)-1),(float)(closeRadius*Math.cos(closeAngle+currentstep)-3), 0.0f));
+			t = shapes[2].getTransformation();
+			t.mul(wheelRot);
+			t.mul(rotZ);
+			shapes[2].setTransformation(t);
+			
+			wheelRot.set(new Vector3f((float)(farRadius*Math.sin(farAngle+currentstep)-1),(float)(farRadius*Math.cos(farAngle+currentstep)-4.5), 0.0f));
+			t = shapes[3].getTransformation();
+			t.mul(wheelRot);
+			t.mul(rotZ);
+			shapes[3].setTransformation(t);
     		
     		// Trigger redrawing of the render window
     		renderPanel.getCanvas().repaint(); 
