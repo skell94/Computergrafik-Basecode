@@ -41,8 +41,8 @@ public class torus {
 		 * @param r the render context, innerR the inner radius, outerR the outer radius
 		 */
 		private VertexData torus(float innerR, float outerR){
-			int innerSections = 50;
-			int outerSections = 50;
+			int innerSections = 3;
+			int outerSections = 3;
 			// The vertex positions of the torus
 			ArrayList<Float> vList = new ArrayList<Float>();
 			for(int i=0; i<innerSections; ++i){

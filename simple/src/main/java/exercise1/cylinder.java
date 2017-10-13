@@ -91,7 +91,7 @@ public class cylinder {
 		}
 		
 		private void initCylinder(){
-			VertexData vertexData = cylinder(50);
+			VertexData vertexData = cylinder(4);
 			
 			// Make a scene manager and add the object
 			sceneManager = new SimpleSceneManager();

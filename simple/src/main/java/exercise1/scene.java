@@ -294,7 +294,7 @@ public class scene {
 			// Update transformation by rotating with angle "currentstep"
     		Matrix4f rotZ, rotYInv;
     		rotZ = new Matrix4f();
-    		rotZ.rotZ(currentstep*5);
+    		rotZ.rotZ(currentstep*0.1f);
     		rotYInv = new Matrix4f();
     		rotYInv.rotY(-currentstep);
     		
