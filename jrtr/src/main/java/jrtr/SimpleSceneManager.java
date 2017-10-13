@@ -27,9 +27,19 @@ public class SimpleSceneManager implements SceneManagerInterface {
 		return camera;
 	}
 	
+	public void setCamera(Camera camera)
+	{
+		this.camera = camera;
+	}
+	
 	public Frustum getFrustum()
 	{
 		return frustum;
+	}
+	
+	public void setFrustum(Frustum frustum)
+	{
+		this.frustum = frustum;
 	}
 	
 	public void addShape(Shape shape)

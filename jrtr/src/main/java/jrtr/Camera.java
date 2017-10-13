@@ -37,6 +37,15 @@ public class Camera {
 		cameraMatrix.set(f);*/
 	}
 	
+	public Camera(Vector3f centerOfProjection, Vector3f lookAtPoint, Vector3f upVector)
+	{
+		cameraMatrix = new Matrix4f();
+		this.centerOfProjection = centerOfProjection;
+		this.lookAtPoint = lookAtPoint;
+		this.upVector = upVector;
+		this.update();
+	}
+	
 	/**
 	 * Return the camera matrix, i.e., the world-to-camera transform. For example, 
 	 * this is used by the renderer.

@@ -29,6 +29,15 @@ public class Frustum {
 		projectionMatrix.set(f);
 	}
 	
+	public Frustum(float nearPlane, float farPlane, float aspectRatio, float verticalFieldOfView){
+		projectionMatrix = new Matrix4f();
+		float f[] = {(float) (1.0/(aspectRatio*Math.tan(verticalFieldOfView/2))), 0.f, 0.f, 0.f, 
+					 0.f, (float) (1.0/(Math.tan(verticalFieldOfView/2))), 0.f, 0.f,
+				     0.f, 0.f, (nearPlane + farPlane)/(nearPlane - farPlane), 2*nearPlane*farPlane/(nearPlane - farPlane),
+				     0.f, 0.f, -1.f, 0.f};
+		projectionMatrix.set(f);
+	}
+	
 	/**
 	 * Return the 4x4 projection matrix, which is used for example by 
 	 * the renderer.
