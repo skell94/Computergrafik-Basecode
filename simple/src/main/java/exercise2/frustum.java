@@ -122,8 +122,8 @@ public class frustum
 			Frustum frustum = new Frustum(1.f, 100.f, 1.f, (float)(Math.PI/3));
 			sceneManager.setFrustum(frustum);
 			
-//			Camera camera = new Camera(new Vector3f(0.f, 0.f, 40.f), new Vector3f(0.f, 0.f, 0.f), new Vector3f(0.f, 1.f, 0.f));
-			Camera camera = new Camera(new Vector3f(-10.f, 40.f, 40.f), new Vector3f(-5.f, 0.f, 0.f), new Vector3f(0.f, 1.f, 0.f));
+			Camera camera = new Camera(new Vector3f(0.f, 0.f, 40.f), new Vector3f(0.f, 0.f, 0.f), new Vector3f(0.f, 1.f, 0.f));
+//			Camera camera = new Camera(new Vector3f(-10.f, 40.f, 40.f), new Vector3f(-5.f, 0.f, 0.f), new Vector3f(0.f, 1.f, 0.f));
 			sceneManager.setCamera(camera);
 			
 			sceneManager.addShape(makeHouse());
