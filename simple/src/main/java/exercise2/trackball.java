@@ -107,47 +107,35 @@ public class trackball {
 	 * used to process mouse events.
 	 */
 	public static class SimpleMouseMotionListener implements MouseMotionListener {
-		private float radius;
 		private double x;
 		private double y;
-		private Vector3f position;
 		
-		public SimpleMouseMotionListener(float radius, Vector3f position){
-			this.radius = radius;
-			this.position = position;
-		}
-
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			this.x = e.getLocationOnScreen().getX();
-			this.y = e.getLocationOnScreen().getY();	
+			this.x = e.getX();
+			this.y = e.getY();
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
+			Vector3f position = sceneManager.getCamera().getCenterOfProjection();
+			Vector3f up = sceneManager.getCamera().getUpVector();
+			Vector3f cross = new Vector3f();
+			cross.cross(up,  position);
+			cross.normalize();
+			up.normalize();
+			float radius = position.length();
+			
 			double newX = e.getX();
 			double newY = e.getY();
-			double deltaX = (this.x - newX)/50;
-			double xAngle = Math.tan(deltaX / radius);
-			double deltaY = (this.y - newY)/50;
-			double yAngle = Math.tan(deltaY / radius);
-			if(deltaX == 0 && deltaY == 0)
-				return;
+			float deltaX = (float)(this.x - newX)/50;
+			float deltaY = (float)(newY - this.y)/50;
+			System.out.println(deltaX + " " + deltaY);
 			
-			Matrix4f newVector = new Matrix4f(position.x, position.y, position.z, 0.f,
-					0.f, 0.f, 0.f, 0.f,
-					0.f, 0.f, 0.f, 0.f,
-					0.f, 0.f, 0.f, 0.f);
-			Matrix4f rotX, rotY;
-			rotX = new Matrix4f();
-			rotX.rotX((float) xAngle);
-			rotY = new Matrix4f();
-			rotY.rotY((float) yAngle);
+			Vector3f newPosition = new Vector3f(position.x + deltaX*cross.x + deltaY*up.x, position.y + deltaX*cross.y + deltaY*up.y, position.z + deltaX*cross.z + deltaY*up.z);
 			
-			newVector.mul(rotX);
-			newVector.mul(rotY);
-			
-			Vector3f newPosition = new Vector3f(newVector.m00, newVector.m01, newVector.m02);
+			newPosition.normalize();
+			newPosition = new Vector3f(radius*newPosition.x, radius*newPosition.y, radius*newPosition.z);
 
 			Vector3f crossProduct = new Vector3f();
 			crossProduct.cross(position, newPosition);
@@ -158,11 +146,14 @@ public class trackball {
 			Matrix4f rotCamera = new Matrix4f();
 			rotCamera.set(rot);
 
-			Matrix4f cameraMatrix = sceneManager.getCamera().getCameraMatrix();
-			cameraMatrix.mul(rotCamera);
-			sceneManager.getCamera().setCameraMatrix(cameraMatrix);
+			Matrix4f upMatrix = new Matrix4f(up.x, 0.f, 0.f, 0.f,
+					up.y, 0.f, 0.f, 0.f,
+					up.z, 0.f, 0.f, 0.f,
+					0.f, 0.f, 0.f, 0.f);
+			upMatrix.mul(rotCamera);
+			Vector3f newUp = new Vector3f(upMatrix.m00, upMatrix.m10, upMatrix.m20);
+			sceneManager.setCamera(new Camera(newPosition, sceneManager.getCamera().getLookAtPoint(), newUp));
 
-			this.position = newPosition;
 			this.x = newX;
 			this.y = newY;
 
@@ -257,7 +248,7 @@ public class trackball {
 																// window
 
 		// Add a mouse and key listener
-		renderPanel.getCanvas().addMouseMotionListener(new SimpleMouseMotionListener(3.f, new Vector3f(0.f, 0.f, 3.f)));
+		renderPanel.getCanvas().addMouseMotionListener(new SimpleMouseMotionListener());
 		renderPanel.getCanvas().addKeyListener(new SimpleKeyListener());
 		renderPanel.getCanvas().setFocusable(true);
 
