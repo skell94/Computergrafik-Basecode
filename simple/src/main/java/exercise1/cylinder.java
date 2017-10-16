@@ -2,11 +2,6 @@ package exercise1;
 
 import jrtr.*;
 import jrtr.glrenderer.*;
-import src.main.java.exercise1.SWRenderPanel;
-import src.main.java.exercise1.cylinder.AnimationTask;
-import src.main.java.exercise1.cylinder.SimpleKeyListener;
-import src.main.java.exercise1.cylinder.SimpleMouseListener;
-import src.main.java.exercise1.cylinder.SimpleRenderPanel;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;

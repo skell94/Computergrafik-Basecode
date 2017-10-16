@@ -130,7 +130,6 @@ public class trackball {
 			double newY = e.getY();
 			float deltaX = (float)(this.x - newX)/50;
 			float deltaY = (float)(newY - this.y)/50;
-			System.out.println(deltaX + " " + deltaY);
 			
 			Vector3f newPosition = new Vector3f(position.x + deltaX*cross.x + deltaY*up.x, position.y + deltaX*cross.y + deltaY*up.y, position.z + deltaX*cross.z + deltaY*up.z);
 			
