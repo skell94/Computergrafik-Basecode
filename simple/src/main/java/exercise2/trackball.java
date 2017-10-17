@@ -2,6 +2,7 @@ package exercise2;
 
 import jrtr.*;
 import jrtr.glrenderer.*;
+import utilities.Vector3fPlus;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;
@@ -27,6 +28,8 @@ public class trackball {
 	static SimpleSceneManager sceneManager;
 	static Shape shape;
 	static float currentstep, basicstep;
+	static final int WIDTH = 500;
+	static final int HEIGHT = 500;
 
 	/**
 	 * An extension of {@link GLRenderPanel} or {@link SWRenderPanel} to provide
@@ -107,57 +110,86 @@ public class trackball {
 	 * used to process mouse events.
 	 */
 	public static class SimpleMouseMotionListener implements MouseMotionListener {
-		private double x;
-		private double y;
-		
+		private float x;
+		private float y;
+		private final float SCREENRADIUS = Math.min(WIDTH/2.f, HEIGHT/2.f);
+
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			this.x = e.getX();
-			this.y = e.getY();
+			setXY(e);
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			Vector3f position = sceneManager.getCamera().getCenterOfProjection();
-			Vector3f up = sceneManager.getCamera().getUpVector();
-			Vector3f cross = new Vector3f();
-			cross.cross(up,  position);
-			cross.normalize();
-			up.normalize();
-			float radius = position.length();
+			Vector3fPlus zAxis = Vector3fPlus.clone(sceneManager.getCamera().getCenterOfProjection());
+			Vector3fPlus yAxis = Vector3fPlus.clone(sceneManager.getCamera().getUpVector());
+			Vector3fPlus xAxis = new Vector3fPlus();
+			xAxis.cross(zAxis,  yAxis);
+			xAxis.normalize();
+			yAxis.normalize();
+			zAxis.normalize();
 			
-			double newX = e.getX();
-			double newY = e.getY();
-			float deltaX = (float)(this.x - newX)/50;
-			float deltaY = (float)(newY - this.y)/50;
+			Vector2f old2DPosition = new Vector2f(this.x, this.y);
+			setXY(e);
+			Vector2f new2DPosition = new Vector2f(this.x, this.y);
 			
-			Vector3f newPosition = new Vector3f(position.x + deltaX*cross.x + deltaY*up.x, position.y + deltaX*cross.y + deltaY*up.y, position.z + deltaX*cross.z + deltaY*up.z);
+			Vector3f old3DPosition = new Vector3f(old2DPosition.x, old2DPosition.y, (float) Math.sqrt(1 - (old2DPosition.length() > 1 ? 1 : old2DPosition.length())));
+			Vector3f new3DPosition = new Vector3f(new2DPosition.x, new2DPosition.y, (float) Math.sqrt(1 - (new2DPosition.length() > 1 ? 1 : new2DPosition.length())));
 			
-			newPosition.normalize();
-			newPosition = new Vector3f(radius*newPosition.x, radius*newPosition.y, radius*newPosition.z);
-
+			Vector3fPlus oldPosition = new Vector3fPlus(0,0,0), newPosition = new Vector3fPlus(0,0,0);
+			Vector3fPlus tempX = xAxis.clone(), tempY = yAxis.clone(), tempZ = zAxis.clone();
+			tempX.mul(old3DPosition.x);
+			tempY.mul(old3DPosition.y);
+			tempZ.mul(old3DPosition.z);
+			oldPosition.add(tempX);
+			oldPosition.add(tempY);
+			oldPosition.add(tempZ);
+			
+			tempX = xAxis.clone();
+			tempY = yAxis.clone();
+			tempZ = zAxis.clone();
+			tempX.mul(new3DPosition.x);
+			tempY.mul(new3DPosition.y);
+			tempZ.mul(new3DPosition.z);
+			newPosition.add(tempX);
+			newPosition.add(tempY);
+			newPosition.add(tempZ);
+			
 			Vector3f crossProduct = new Vector3f();
-			crossProduct.cross(position, newPosition);
-
-			AxisAngle4f rot = new AxisAngle4f(crossProduct.x, crossProduct.y, crossProduct.z,
-					position.angle(newPosition));
+			System.out.println(this.x+" "+this.y);
+			if(this.x < -0.8 || this.y < -0.8 || this.x > 0.7 || this.y > 0.7) {
+				crossProduct = Vector3fPlus.clone(sceneManager.getCamera().getCenterOfProjection());
+			} else {
+			crossProduct.cross(oldPosition, newPosition);
+			}
+			
+			AxisAngle4f rot = new AxisAngle4f(crossProduct.x, crossProduct.y, crossProduct.z, -oldPosition.angle(newPosition));
 
 			Matrix4f rotCamera = new Matrix4f();
-			rotCamera.set(rot);
+			rotCamera.setIdentity();
+			rotCamera.setRotation(rot);
 
-			Matrix4f upMatrix = new Matrix4f(up.x, 0.f, 0.f, 0.f,
-					up.y, 0.f, 0.f, 0.f,
-					up.z, 0.f, 0.f, 0.f,
-					0.f, 0.f, 0.f, 0.f);
-			upMatrix.mul(rotCamera);
-			Vector3f newUp = new Vector3f(upMatrix.m00, upMatrix.m10, upMatrix.m20);
-			sceneManager.setCamera(new Camera(newPosition, sceneManager.getCamera().getLookAtPoint(), newUp));
-
-			this.x = newX;
-			this.y = newY;
+			Vector3fPlus newUp = Vector3fPlus.clone(sceneManager.getCamera().getUpVector());
+			newUp.mul(rotCamera);
+			Vector3fPlus newCenter = Vector3fPlus.clone(sceneManager.getCamera().getCenterOfProjection());
+			float radius = newCenter.length();
+			newCenter.mul(rotCamera);
+			newCenter.setToLength(radius);
+			
+			sceneManager.setCamera(new Camera(newCenter, sceneManager.getCamera().getLookAtPoint(), newUp));
 
 			// Trigger redrawing of the render window
 			renderPanel.getCanvas().repaint();
+		}
+		
+		private void setXY(MouseEvent e) {
+			float tempX = e.getX()/SCREENRADIUS - 1;
+			float tempY = e.getY()/SCREENRADIUS - 1;
+			Vector2f xy = new Vector2f(tempX, tempY);
+			if(xy.length() > 1)
+				xy.normalize();
+			this.x = xy.x;
+			this.y = xy.y;
 		}
 	}
 
@@ -240,11 +272,11 @@ public class trackball {
 
 		// Make the main window of this application and add the renderer to it
 		JFrame jframe = new JFrame("simple");
-		jframe.setSize(500, 500);
+		jframe.setSize(WIDTH, HEIGHT);
 		jframe.setLocationRelativeTo(null); // center of screen
 		jframe.getContentPane().add(renderPanel.getCanvas());// put the canvas
-																// into a JFrame
-																// window
+		// into a JFrame
+		// window
 
 		// Add a mouse and key listener
 		renderPanel.getCanvas().addMouseMotionListener(new SimpleMouseMotionListener());
