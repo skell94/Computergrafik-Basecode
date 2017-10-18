@@ -25,6 +25,14 @@ public class Light {
 		spotExponent = 0.f;
 		spotCutoff = 180.f;
 	}
+	
+	public void setDirection(Vector3f direction) {
+		this.direction = direction;
+	}
+	
+	public void setPosition(Vector3f position) {
+		this.position = position;
+	}
 
 	public Vector3f direction;
 	public Vector3f position;

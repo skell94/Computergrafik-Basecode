@@ -58,7 +58,7 @@ public class FractalLandscape {
 					secondVector = new Vector3fPlus(i-1, j-1, landscape[i-1][j-1]);
 					firstVector.sub(point);
 					secondVector.sub(point);
-					cross.cross(firstVector, secondVector);
+					cross.cross(secondVector, firstVector);
 					cross.normalize();
 					normal.add(cross);
 					
@@ -66,7 +66,7 @@ public class FractalLandscape {
 					secondVector = new Vector3fPlus(i-1, j, landscape[i-1][j]);
 					firstVector.sub(point);
 					secondVector.sub(point);
-					cross.cross(firstVector, secondVector);
+					cross.cross(secondVector, firstVector);
 					cross.normalize();
 					normal.add(cross);
 				}
@@ -75,7 +75,7 @@ public class FractalLandscape {
 					secondVector = new Vector3fPlus(i, j+1, landscape[i][j+1]);
 					firstVector.sub(point);
 					secondVector.sub(point);
-					cross.cross(firstVector, secondVector);
+					cross.cross(secondVector, firstVector);
 					cross.normalize();
 					normal.add(cross);
 				}
@@ -84,7 +84,7 @@ public class FractalLandscape {
 					secondVector = new Vector3fPlus(i, j-1, landscape[i][j-1]);
 					firstVector.sub(point);
 					secondVector.sub(point);
-					cross.cross(firstVector, secondVector);
+					cross.cross(secondVector, firstVector);
 					cross.normalize();
 					normal.add(cross);
 				}
@@ -93,7 +93,7 @@ public class FractalLandscape {
 					secondVector = new Vector3fPlus(i+1, j+1, landscape[i+1][j+1]);
 					firstVector.sub(point);
 					secondVector.sub(point);
-					cross.cross(firstVector, secondVector);
+					cross.cross(secondVector, firstVector);
 					cross.normalize();
 					normal.add(cross);
 					
@@ -101,7 +101,7 @@ public class FractalLandscape {
 					secondVector = new Vector3fPlus(i+1, j, landscape[i+1][j]);
 					firstVector.sub(point);
 					secondVector.sub(point);
-					cross.cross(firstVector, secondVector);
+					cross.cross(secondVector, firstVector);
 					cross.normalize();
 					normal.add(cross);
 				}
@@ -115,12 +115,10 @@ public class FractalLandscape {
 		}
 
 		// The vertex colors
-		Random rand = new Random();
 		ArrayList<Float> cList = new ArrayList<Float>();
 		for(int i = 0; i < size; ++i) {
 			for(int j = 0; j < size; ++j) {
-				float color =  (landscape[i][j]+height/2)/height;
-				cList.addAll(Arrays.asList(color, color, color));
+				cList.addAll(Arrays.asList(calculateColor(landscape[i][j])));
 			}
 		}
 		float c[] = new float[cList.size()];
@@ -136,8 +134,8 @@ public class FractalLandscape {
 
 		// The triangles (three vertex indices for each triangle)
 		ArrayList<Integer> indicesList = new ArrayList<Integer>();
-		for(int i = 0; i < size-2; ++i) {
-			for(int j = 0; j < size-2; ++j) {
+		for(int i = 0; i < size-1; ++i) {
+			for(int j = 0; j < size-1; ++j) {
 				indicesList.addAll(Arrays.asList(i+j*size, i+(j+1)*size, (i+1)+(j+1)*size));
 				indicesList.addAll(Arrays.asList(i+j*size, (i+1)+(j+1)*size, (i+1)+j*size));
 			}
@@ -203,5 +201,35 @@ public class FractalLandscape {
 		square(middleX, endX+(endX-startX)/2, startY, endY);
 		square(startX, endX, startY-(endY-startY)/2, middleY);
 		square(startX, endX, middleY, endY+(endY-startY)/2);
+	}
+	
+	private Float[] calculateColor(float z) {
+		Float[] green = {0.f, 0.3f, 0.f};
+		float average = (z+height/2)/height;
+		Random random = new Random();
+		
+		if(average <= 0.65f) {
+			return green;
+		}
+		if(average > 0.65f && average < 0.75f) {
+			float greyProbability = average*10 - 6.5f;
+			float randomValue = random.nextFloat();
+			if(randomValue <= greyProbability) {
+				return getGrey(average);
+			} else {
+				return green;
+			}
+		}
+		return getGrey(average);
+	}
+	
+	private Float[] getGrey(float average){
+		Random random = new Random();
+		float variation = random.nextFloat() / 20;
+		float color = average + variation;
+		if(color > 1)
+			color = 1;
+		Float[] array = {color, color, color};
+		return array;
 	}
 }
