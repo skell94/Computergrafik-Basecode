@@ -49,6 +49,12 @@ public class Vector3fPlus extends Vector3f{
 		this.z += vector.z;
 	}
 	
+	public void sub (Vector3f vector) {
+		this.x -= vector.x;
+		this.y -= vector.y;
+		this.z -= vector.z;
+	}
+	
 	public void setToLength(float length) {
 		normalize();
 		this.x *= length;
