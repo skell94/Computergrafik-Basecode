@@ -20,21 +20,25 @@ public class Vector3fPlus extends Vector3f{
 		Matrix3f temp = new Matrix3f(this.x, this.y, this.z,
 				0.f, 0.f, 0.f,
 				0.f, 0.f, 0.f);
-		temp.mul(matrix);
-		this.x = temp.m00;
-		this.y = temp.m01;
-		this.z = temp.m02;
+		Matrix3f tempM = new Matrix3f();
+		tempM.set(matrix);
+		tempM.mul(temp);
+		this.x = tempM.m00;
+		this.y = tempM.m10;
+		this.z = tempM.m20;
 	}
 
 	public void mul(Matrix4f matrix) {
-		Matrix4f temp = new Matrix4f(this.x, this.y, this.z, 0.f,
-				0.f, 0.f, 0.f, 0.f,
-				0.f, 0.f, 0.f, 0.f, 
+		Matrix4f temp = new Matrix4f(this.x, 0.f, 0.f, 0.f,
+				this.y, 0.f, 0.f, 0.f,
+				this.z, 0.f, 0.f, 0.f, 
 				0.f, 0.f, 0.f, 0.f);
-		temp.mul(matrix);
-		this.x = temp.m00;
-		this.y = temp.m01;
-		this.z = temp.m02;
+		Matrix4f tempM = new Matrix4f();
+		tempM.set(matrix);
+		tempM.mul(temp);
+		this.x = tempM.m00;
+		this.y = tempM.m10;
+		this.z = tempM.m20;
 	}
 	
 	public void mul(float scalar) {

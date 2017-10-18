@@ -156,14 +156,13 @@ public class trackball {
 			newPosition.add(tempZ);
 			
 			Vector3f crossProduct = new Vector3f();
-			System.out.println(this.x+" "+this.y);
 			if(this.x < -0.8 || this.y < -0.8 || this.x > 0.7 || this.y > 0.7) {
 				crossProduct = Vector3fPlus.clone(sceneManager.getCamera().getCenterOfProjection());
 			} else {
 			crossProduct.cross(oldPosition, newPosition);
 			}
 			
-			AxisAngle4f rot = new AxisAngle4f(crossProduct.x, crossProduct.y, crossProduct.z, -oldPosition.angle(newPosition));
+			AxisAngle4f rot = new AxisAngle4f(crossProduct.x, crossProduct.y, crossProduct.z, oldPosition.angle(newPosition));
 
 			Matrix4f rotCamera = new Matrix4f();
 			rotCamera.setIdentity();

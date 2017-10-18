@@ -14,7 +14,7 @@ public class FractalLandscape {
 	private float[][] landscape;
 	private int height;
 	private int size;
-	private final float WIDTH = 50.f;
+	private final float WIDTH = 300.f;
 
 	public FractalLandscape(int power, int height) {
 		this.size = (int) Math.pow(2, power) + 1;
@@ -28,12 +28,6 @@ public class FractalLandscape {
 		landscape[size-1][size-1] = (random.nextFloat() - 0.5f) * height;
 
 		diamond(0, size-1, 0, size-1);
-//		for(int i = 0; i<size; ++i) {
-//			for(int j=0; j<size; ++j) {
-//				System.out.print(landscape[i][j]+" ");
-//			}
-//			System.out.println();
-//		}
 	}
 
 	public VertexData getVertexData(RenderContext renderContext) {
@@ -204,12 +198,11 @@ public class FractalLandscape {
 	}
 	
 	private Float[] calculateColor(float z) {
-		Float[] green = {0.f, 0.3f, 0.f};
 		float average = (z+height/2)/height;
 		Random random = new Random();
 		
 		if(average <= 0.65f) {
-			return green;
+			return getGreen();
 		}
 		if(average > 0.65f && average < 0.75f) {
 			float greyProbability = average*10 - 6.5f;
@@ -217,7 +210,7 @@ public class FractalLandscape {
 			if(randomValue <= greyProbability) {
 				return getGrey(average);
 			} else {
-				return green;
+				return getGreen();
 			}
 		}
 		return getGrey(average);
@@ -230,6 +223,13 @@ public class FractalLandscape {
 		if(color > 1)
 			color = 1;
 		Float[] array = {color, color, color};
+		return array;
+	}
+	
+	private Float[] getGreen() {
+		Random random = new Random();
+		float green = 0.5f - random.nextFloat()/10.f;
+		Float[] array = {0.f, green, 0.f};
 		return array;
 	}
 }
