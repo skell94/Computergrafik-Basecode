@@ -43,15 +43,15 @@ public class fractalLandscape
 		public void init(RenderContext r)
 		{
 			renderContext = r;
-			FractalLandscape f = new FractalLandscape(7, 15);
+			FractalLandscape f = new FractalLandscape(7, 100);
 			VertexData vertexData = f.getVertexData(renderContext);
 
 			// Make a scene manager and add the object
 			sceneManager = new SimpleSceneManager();
-			Frustum frustum = new Frustum(1.f, 100.f, 1.f, (float)(Math.PI/3));
+			Frustum frustum = new Frustum(1.f, 1000.f, 1.f, (float)(Math.PI/3));
 			sceneManager.setFrustum(frustum);
 
-			Camera camera = new Camera(new Vector3f(0.f, 0.f, 60.f), new Vector3f(0.f, 0.f, 0.f), new Vector3f(0.f, 1.f, 0.f));
+			Camera camera = new Camera(new Vector3f(0.f, 0.f, 250.f), new Vector3f(0.f, 0.f, 0.f), new Vector3f(0.f, 1.f, 0.f));
 			sceneManager.setCamera(camera);
 
 			shape = new Shape(vertexData);
