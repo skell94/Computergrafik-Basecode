@@ -2,6 +2,7 @@ package exercise2;
 
 import jrtr.*;
 import jrtr.glrenderer.*;
+import jrtr.swrenderer.SWRenderPanel;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;
@@ -30,7 +31,7 @@ public class frustum
 	 * provide a call-back function for initialization. Here we construct
 	 * a simple 3D scene and start a timer task to generate an animation.
 	 */ 
-	public final static class SimpleRenderPanel extends GLRenderPanel
+	public final static class SimpleRenderPanel extends SWRenderPanel
 	{
 		public static Shape makeHouse()
 		{

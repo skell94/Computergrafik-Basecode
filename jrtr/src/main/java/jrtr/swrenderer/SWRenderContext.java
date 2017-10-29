@@ -7,9 +7,15 @@ import jrtr.SceneManagerIterator;
 import jrtr.Shader;
 import jrtr.Texture;
 import jrtr.VertexData;
+import jrtr.VertexData.VertexElement;
 import jrtr.glrenderer.GLRenderPanel;
 
 import java.awt.image.*;
+import java.util.LinkedList;
+import java.util.ListIterator;
+
+import javax.media.opengl.GL3;
+import javax.vecmath.*;
 
 
 /**
@@ -84,6 +90,26 @@ public class SWRenderContext implements RenderContext {
 	 */
 	private void draw(RenderItem renderItem)
 	{
+		SWVertexData vertexData = (SWVertexData) renderItem.getShape().getVertexData();
+		Matrix4f t = renderItem.getShape().getTransformation();
+		
+		ListIterator<VertexData.VertexElement> itr = vertexData.getElements()
+				.listIterator(0);
+		while (itr.hasNext()) {
+			VertexData.VertexElement e = itr.next();
+
+			switch (e.getSemantic()) {
+			case POSITION:
+				drawVertices(e, t);
+				break;
+			case NORMAL:
+				break;
+			case COLOR:
+				break;
+			case TEXCOORD:
+				break;
+			}
+		}
 	}
 	
 	/**
@@ -119,5 +145,30 @@ public class SWRenderContext implements RenderContext {
 	public VertexData makeVertexData(int n)
 	{
 		return new SWVertexData(n);		
+	}
+	
+	private void drawVertices(VertexElement e, Matrix4f t) {
+		float[] data = e.getData();
+		int maxX = colorBuffer.getWidth();
+		int maxY = colorBuffer.getHeight();
+		Matrix4f cameraMatrix = (Matrix4f) sceneManager.getCamera().getCameraMatrix().clone();
+		Matrix4f projectionMatrix = sceneManager.getFrustum().getProjectionMatrix();
+		Matrix4f viewPortMatrix = new Matrix4f(maxX/2.f, 0.f, 0.f, maxX/2.f,
+				0.f, -maxY/2.f, 0.f, maxY/2.f,
+				0.f, 0.f, 0.5f, 0.5f,
+				0.f, 0.f, 0.f, 1.f);
+		for(int i=0; i < data.length; i+=3) {
+			Vector4f v = new Vector4f(data[i], data[i+1], data[i+2], 1.f);
+			t.transform(v);
+			cameraMatrix.transform(v);
+			projectionMatrix.transform(v);
+			viewPortMatrix.transform(v);
+			
+			int pixelX = Math.round(v.x/v.w);
+			int pixelY = Math.round(v.y/v.w);
+			System.out.println((i+1)+": "+pixelX+" "+pixelY);
+			if(pixelX >= 0 && pixelX <= maxX && pixelY >= 0 && pixelY <= maxY)
+				colorBuffer.setRGB(pixelX, pixelY, ((255 << 16) | ((255 << 8) | 255)));
+		}
 	}
 }
