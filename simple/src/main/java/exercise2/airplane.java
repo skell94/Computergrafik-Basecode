@@ -334,7 +334,7 @@ public class airplane {
 
 		// Make the main window of this application and add the renderer to it
 		JFrame jframe = new JFrame("simple");
-		jframe.setSize(500, 500);
+		jframe.setSize(1000, 1000);
 		jframe.setLocationRelativeTo(null); // center of screen
 		jframe.getContentPane().add(renderPanel.getCanvas());// put the canvas into a JFrame window
 

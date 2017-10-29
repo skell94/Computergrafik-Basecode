@@ -28,8 +28,8 @@ public class trackball {
 	static SimpleSceneManager sceneManager;
 	static Shape shape;
 	static float currentstep, basicstep;
-	static final int WIDTH = 500;
-	static final int HEIGHT = 500;
+	static final int WIDTH = 1000;
+	static final int HEIGHT = 1000;
 
 	/**
 	 * An extension of {@link GLRenderPanel} or {@link SWRenderPanel} to provide
