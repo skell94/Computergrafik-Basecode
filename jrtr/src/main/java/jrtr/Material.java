@@ -1,6 +1,10 @@
 package jrtr;
 
+import java.io.IOException;
+
 import javax.vecmath.*;
+
+import jrtr.swrenderer.SWTexture;
 
 /**
  * Stores the properties of a material.
@@ -29,5 +33,14 @@ public class Material {
 		alphaMap = null;
 		shader = null;
 		texture = null;
+	}
+	
+	public void setTexture(String filename) {
+		this.texture = new SWTexture();
+		try {
+			texture.load(filename);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
