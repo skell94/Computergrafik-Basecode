@@ -1,5 +1,6 @@
 package jrtr;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 /**
@@ -8,4 +9,6 @@ import java.io.IOException;
 public interface Texture {
 
 	public void load(String fileName) throws IOException;
+
+	public BufferedImage getBufferedImage();
 }

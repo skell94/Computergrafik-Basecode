@@ -2,6 +2,7 @@ package exercise1;
 
 import jrtr.*;
 import jrtr.glrenderer.*;
+import jrtr.swrenderer.SWRenderPanel;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;
@@ -28,7 +29,7 @@ public class cylinder {
 	 * provide a call-back function for initialization. Here we construct
 	 * a simple 3D scene and start a timer task to generate an animation.
 	 */ 
-	public final static class SimpleRenderPanel extends GLRenderPanel
+	public final static class SimpleRenderPanel extends SWRenderPanel
 	{
 		/**
 		 * create VertexData for Cylinder

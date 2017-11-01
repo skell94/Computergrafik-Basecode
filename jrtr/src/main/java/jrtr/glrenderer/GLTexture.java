@@ -71,4 +71,10 @@ public class GLTexture implements Texture {
 		}
 		return buf;
 	}
+
+	@Override
+	public BufferedImage getBufferedImage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
