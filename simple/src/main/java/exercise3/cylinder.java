@@ -8,15 +8,13 @@ import jrtr.gldeferredrenderer.*;
 import javax.swing.*;
 import java.awt.event.*;
 import javax.vecmath.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/**
- * Implements a simple application that opens a 3D rendering window and 
- * shows a rotating cube.
- */
-public class simple
-{	
+public class cylinder {
 	static RenderPanel renderPanel;
 	static RenderContext renderContext;
 	static Shader normalShader;
@@ -34,6 +32,87 @@ public class simple
 	public final static class SimpleRenderPanel extends SWRenderPanel
 	{
 		/**
+		 * create VertexData for Cylinder
+		 * 
+		 * @param r the render context, n the number of sections the cylinder is divided into
+		 */
+		private VertexData cylinder(int n){
+			// The vertex positions of the cylinder
+			ArrayList<Float> vList = new ArrayList<Float>();
+			for(int i=0; i<n; ++i){
+				double angle = i*(1.0/n)*2*Math.PI;
+				vList.addAll(Arrays.asList((float)(Math.sin(angle)), (float)(Math.cos(angle)), 3.0f));
+			}
+			for(int i=0; i<n; ++i){
+				double angle = i*(1.0/n)*2*Math.PI;
+				vList.addAll(Arrays.asList((float)(Math.sin(angle)), (float)(Math.cos(angle)), -3.0f));
+			}
+			vList.addAll(Arrays.asList(0.0f, 0.0f, 3.0f, 0.0f, 0.0f, -3.0f));
+			float v[] = new float[vList.size()];
+			for(int i=0; i<vList.size(); ++i){
+				v[i] = vList.get(i);
+			}
+			
+			// The colors
+			ArrayList<Float> cList = new ArrayList<Float>();
+			for(int i=0; i<n; ++i){
+				cList.addAll(Arrays.asList(0.0f, 1.0f, 0.0f));
+				cList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f));
+			}
+			cList.addAll(Arrays.asList(1.0f, 1.0f, 1.0f));
+			cList.addAll(Arrays.asList(1.0f, 1.0f, 1.0f));
+			float c[] = new float[cList.size()];
+			for(int i=0; i<cList.size(); ++i){
+				c[i] = cList.get(i);
+			}
+			
+			// The texture
+			ArrayList<Float> tList = new ArrayList<Float>();
+			for(int i=0; i<n; ++i){
+				tList.addAll(Arrays.asList(i/(float)n, 1.f));
+			}
+			for(int i=0; i<n; ++i){
+				tList.addAll(Arrays.asList(i/(float)n, 0.f));
+			}
+			tList.addAll(Arrays.asList(0.0f, 0.0f, 1.0f, 1.0f));
+			float t[] = new float[tList.size()];
+			for(int i=0; i<tList.size(); ++i){
+				t[i] = tList.get(i);
+			}
+			
+			// The triangles
+			ArrayList<Integer> iList = new ArrayList<Integer>();
+			for(int i=0; i<n; ++i){
+				iList.addAll(Arrays.asList(2*n, i, (i+1)%n));
+				iList.addAll(Arrays.asList(2*n+1, i+n, (i+1)%n+n));
+				iList.addAll(Arrays.asList(i, i+n, (i+1)%n));
+				iList.addAll(Arrays.asList(i+n, (i+1)%n+n, (i+1)%n));
+			}
+			int indices[] = new int[iList.size()];
+			for(int i=0; i<iList.size(); ++i){
+				indices[i] = iList.get(i);
+			}
+			
+			VertexData vertexData = renderContext.makeVertexData(2*n+2);
+			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
+			vertexData.addElement(t, VertexData.Semantic.TEXCOORD, 2);
+			vertexData.addElement(v, VertexData.Semantic.POSITION, 3);
+			vertexData.addIndices(indices);
+			return vertexData;
+		}
+		
+		private void initCylinder(){
+			VertexData vertexData = cylinder(20);
+			
+			// Make a scene manager and add the object
+			sceneManager = new SimpleSceneManager();
+			shape = new Shape(vertexData);
+			shape.setMaterial(new Material());
+			shape.getMaterial().setTexture("../textures/wood.jpg");
+			sceneManager.addShape(shape);
+		}
+		
+		/**
 		 * Initialization call-back. We initialize our renderer here.
 		 * 
 		 * @param r	the render context that is associated with this render panel
@@ -42,65 +121,8 @@ public class simple
 		{
 			renderContext = r;
 			
-			// Make a simple geometric object: a cube
-			
-			// The vertex positions of the cube
-			float v[] = {-1,-1,1, 1,-1,1, 1,1,1, -1,1,1,		// front face
-				         -1,-1,-1, -1,-1,1, -1,1,1, -1,1,-1,	// left face
-					  	 1,-1,-1,-1,-1,-1, -1,1,-1, 1,1,-1,		// back face
-						 1,-1,1, 1,-1,-1, 1,1,-1, 1,1,1,		// right face
-						 1,1,1, 1,1,-1, -1,1,-1, -1,1,1,		// top face
-						-1,-1,1, -1,-1,-1, 1,-1,-1, 1,-1,1};	// bottom face
+			initCylinder();
 
-			// The vertex normals 
-			float n[] = {0,0,1, 0,0,1, 0,0,1, 0,0,1,			// front face
-				         -1,0,0, -1,0,0, -1,0,0, -1,0,0,		// left face
-					  	 0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,		// back face
-						 1,0,0, 1,0,0, 1,0,0, 1,0,0,			// right face
-						 0,1,0, 0,1,0, 0,1,0, 0,1,0,			// top face
-						 0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0};		// bottom face
-
-			// The vertex colors
-			float c[] = {1,0,0, 1,0,0, 1,0,0, 1,0,0,
-					     0,1,0, 0,1,0, 0,1,0, 0,1,0,
-						 1,0,0, 1,0,0, 1,0,0, 1,0,0,
-						 0,1,0, 0,1,0, 0,1,0, 0,1,0,
-						 0,0,1, 0,0,1, 0,0,1, 0,0,1,
-						 0,0,1, 0,0,1, 0,0,1, 0,0,1};
-
-			// Texture coordinates 
-			float uv[] = {0,0, 1,0, 1,1, 0,1,
-					  0,0, 1,0, 1,1, 0,1,
-					  0,0, 1,0, 1,1, 0,1,
-					  0,0, 1,0, 1,1, 0,1,
-					  0,0, 1,0, 1,1, 0,1,
-					  0,0, 1,0, 1,1, 0,1};
-
-			// Construct a data structure that stores the vertices, their
-			// attributes, and the triangle mesh connectivity
-			VertexData vertexData = renderContext.makeVertexData(24);
-			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
-			vertexData.addElement(v, VertexData.Semantic.POSITION, 3);
-			vertexData.addElement(n, VertexData.Semantic.NORMAL, 3);
-			vertexData.addElement(uv, VertexData.Semantic.TEXCOORD, 2);
-			
-			// The triangles (three vertex indices for each triangle)
-			int indices[] = {0,2,3, 0,1,2,			// front face
-							 4,6,7, 4,5,6,			// left face
-							 8,10,11, 8,9,10,		// back face
-							 12,14,15, 12,13,14,	// right face
-							 16,18,19, 16,17,18,	// top face
-							 20,22,23, 20,21,22};	// bottom face
-
-			vertexData.addIndices(indices);
-								
-			// Make a scene manager and add the object
-			sceneManager = new SimpleSceneManager();
-			shape = new Shape(vertexData);
-			shape.setMaterial(new Material());
-			shape.getMaterial().setTexture("../textures/wood.jpg");
-			sceneManager.addShape(shape);
-			
 			// Add the scene to the renderer
 			renderContext.setSceneManager(sceneManager);
 
@@ -134,7 +156,7 @@ public class simple
     		renderPanel.getCanvas().repaint(); 
 		}
 	}
-	
+
 	/**
 	 * The main function opens a 3D rendering window, implemented by the class
 	 * {@link SimpleRenderPanel}. {@link SimpleRenderPanel} is then called backed 
@@ -148,7 +170,7 @@ public class simple
 		renderPanel = new SimpleRenderPanel();
 		
 		// Make the main window of this application and add the renderer to it
-		JFrame jframe = new JFrame("simple");
+		JFrame jframe = new JFrame("exercise1");
 		jframe.setSize(500, 500);
 		jframe.setLocationRelativeTo(null); // center of screen
 		jframe.getContentPane().add(renderPanel.getCanvas());// put the canvas into a JFrame window

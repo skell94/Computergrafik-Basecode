@@ -10,6 +10,7 @@ import jrtr.VertexData;
 import jrtr.VertexData.VertexElement;
 import jrtr.glrenderer.GLRenderPanel;
 
+import java.awt.Color;
 import java.awt.image.*;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -32,6 +33,7 @@ public class SWRenderContext implements RenderContext {
 	private BufferedImage colorBuffer;
 	private Matrix4f viewPortMatrix;
 	private float[][] zBuffer;
+	private boolean useTexture = true;
 
 	public void setSceneManager(SceneManagerInterface sceneManager)
 	{
@@ -94,7 +96,9 @@ public class SWRenderContext implements RenderContext {
 	{
 		setViewportSize(colorBuffer.getWidth(), colorBuffer.getHeight());
 		
-		BufferedImage texture = renderItem.getShape().getMaterial().texture.getBufferedImage();
+		BufferedImage texture = null;
+		if(useTexture)
+			texture = renderItem.getShape().getMaterial().texture.getBufferedImage();
 		
 		SWVertexData vertexData = (SWVertexData) renderItem.getShape().getVertexData();
 		LinkedList<VertexElement> elements = vertexData.getElements();
@@ -204,18 +208,52 @@ public class SWRenderContext implements RenderContext {
 				float g = i*w*gv.x + j*w*gv.y + w*gv.z;
 				float bl = i*w*bv.x + j*w*bv.y + w*bv.z;
 				
-				float texXF = i*w*tx.x + j*w*tx.y + w*tx.z;
-				float texYF = i*w*ty.x + j*w*ty.y + w*ty.z;
-				texXF = texXF >= 1 ? 1 : texXF;
-				texYF = texYF >= 1 ? 1 : texYF;
-				int texX = Math.round(texXF*(texture.getWidth()-1));
-				int texY = Math.round(texture.getHeight() -1 - texYF*(texture.getHeight()-1));
-				
 				int rgb = (Math.round(r*255) << 16) | ((Math.round(g*255) << 8) | Math.round(bl*255));
+				
+				if(useTexture){
+					float texXF = i*w*tx.x + j*w*tx.y + w*tx.z;
+					float texYF = i*w*ty.x + j*w*ty.y + w*ty.z;
+					texXF = Math.min(texXF, 1.f);
+					texYF = Math.min(texYF, 1.f);
+					texXF = Math.max(texXF, 0.f);
+					texYF = Math.max(texYF, 0.f);
+					
+					texXF *= (texture.getWidth()-1);
+					texYF = texture.getHeight()-1 - texYF*(texture.getHeight()-1);
+					rgb = nearestNeighbor(texXF, texYF, texture);
+					rgb = interpolate(texXF, texYF, texture);
+				}
 				colorBuffer.setRGB(i, j, rgb);
-				colorBuffer.setRGB(i, j, texture.getRGB(texX, texY));
 			}
 		}
+	}
+
+	private int interpolate(float texXF, float texYF, BufferedImage texture) {
+		Color color, color1, color2, x1y1, x2y1, x1y2, x2y2;
+		
+		float xFract = texXF % 1;
+		float yFract = texYF % 1;
+		
+		x1y1 = new Color(texture.getRGB((int)Math.floor(texXF), (int)Math.floor(texYF)));
+		x1y2 = new Color(texture.getRGB((int)Math.floor(texXF), (int)Math.ceil(texYF)));
+		x2y1 = new Color(texture.getRGB((int)Math.ceil(texXF), (int)Math.floor(texYF)));
+		x2y2 = new Color(texture.getRGB((int)Math.ceil(texXF), (int)Math.ceil(texYF)));
+		
+		color1 = new Color(Math.round((1-xFract)*x1y1.getRed() + xFract*x2y1.getRed()),
+						Math.round((1-xFract)*x1y1.getGreen() + xFract*x2y1.getGreen()),
+						Math.round((1-xFract)*x1y1.getBlue() + xFract*x2y1.getBlue()));
+		color2 = new Color(Math.round((1-xFract)*x1y2.getRed() + xFract*x2y2.getRed()),
+				Math.round((1-xFract)*x1y2.getGreen() + xFract*x2y2.getGreen()),
+				Math.round((1-xFract)*x1y2.getBlue() + xFract*x2y2.getBlue()));
+		
+		color = new Color(Math.round((1-yFract)*color1.getRed() + yFract*color2.getRed()),
+				Math.round((1-yFract)*color1.getGreen() + yFract*color2.getGreen()),
+				Math.round((1-yFract)*color1.getBlue() + yFract*color2.getBlue()));
+		return color.getRGB();
+	}
+
+	private int nearestNeighbor(float texX, float texY, BufferedImage texture) {
+		return texture.getRGB(Math.round(texX), Math.round(texY));
 	}
 
 	/**
