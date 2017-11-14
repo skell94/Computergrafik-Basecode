@@ -70,8 +70,8 @@ public class airplane {
 			sceneManager.setCamera(camera);
 
 			Light light = new Light();
-			light.setPosition(new Vector3f(0.f, 0.f, 100.f));
-			light.setDirection(new Vector3f(0.f, 0.f, -1.f));
+			light.position = new Vector3f(0.f, 0.f, 100.f);
+			light.direction = new Vector3f(0.f, 0.f, -1.f);
 			sceneManager.addLight(light);
 
 			shape = new Shape(vertexData);

@@ -9,7 +9,7 @@ in vec4 frag_color;
 out vec4 frag_shaded;
 
 void main()
-{		
+{
 	frag_shaded = frag_color;
 }
 

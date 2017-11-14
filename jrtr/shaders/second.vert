@@ -1,15 +1,19 @@
 #version 150
-// GLSL version 1.50 
+// GLSL version 1.50
 // Vertex shader for diffuse shading in combination with a texture map
 
-// Uniform variables, passed in from host program via suitable 
+// Uniform variables, passed in from host program via suitable
 // variants of glUniform*
 uniform mat4 projection;
 uniform mat4 modelview;
 uniform mat4 camera;
+uniform vec4 cameraPoint;
 uniform vec4 materialDiffuse;
+uniform vec4 materialSpecular;
+uniform float materialShininess;
 uniform vec4 lightPoint[8];
 uniform vec4 lightDiffuse[8];
+uniform vec4 lightSpecular[8];
 uniform int nLights;
 
 // Input vertex attributes; passed in from host program to shader
@@ -21,15 +25,15 @@ in vec4 position;
 out vec4 frag_color;
 
 void main()
-{		
-	// Compute dot product of normal and light direction
-	// and pass color to fragment shader
-	// Note: here we assume "lightDirection" is specified in camera coordinates,
-	// so we transform the normal to camera coordinates, and we don't transform
-	// the light direction, i.e., it stays in camera coordinates
+{
 	frag_color = vec4(0,0,0,0);
 	for(int i=0; i<nLights || i<8; ++i){
-		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * (lightPoint[i] - position)),0) * materialDiffuse * lightDiffuse[i];
+		// compute h vector
+		vec4 e, h, lightDirection;
+		lightDirection = lightPoint[i] - position;
+		e = cameraPoint - position;
+		h = (lightDirection + e)/length(lightDirection + e);
+		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * lightDirection),0) * materialDiffuse * lightDiffuse[i] + pow(max(dot(transpose(inverse(modelview)) * vec4(normal, 0), camera * h),0), materialShininess) * materialSpecular * lightSpecular[i];
 	}
 
 	// Transform position, including projection matrix
