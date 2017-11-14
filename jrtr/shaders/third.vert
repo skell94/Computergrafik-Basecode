@@ -20,21 +20,28 @@ uniform int nLights;
 // via vertex buffer objects
 in vec3 normal;
 in vec4 position;
+in vec2 texcoord;
 
 // Output variables for fragment shader
-out vec4 frag_color;
+out float ndotl[8];
+out float ndothpows[8];
+out vec2 frag_texcoord;
 
 void main()
 {
-	frag_color = vec4(0,0,0,0);
 	for(int i=0; i<nLights && i<8; ++i){
 		// compute h vector
 		vec4 e, h, lightDirection;
 		lightDirection = lightPoint[i] - position;
 		e = cameraPoint - position;
 		h = (lightDirection + e)/length(lightDirection + e);
-		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * lightDirection),0) * materialDiffuse * lightDiffuse[i] + pow(max(dot(transpose(inverse(modelview)) * vec4(normal, 0), camera * h),0), materialShininess) * materialSpecular * lightSpecular[i];
+		ndotl[i] = max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * lightDirection),0);
+		ndothpows[i] = pow(max(dot(transpose(inverse(modelview)) * vec4(normal, 0), camera * h),0), materialShininess);
 	}
+
+	// Pass texture coordiantes to fragment shader, OpenGL automatically
+	// interpolates them to each pixel  (in a perspectively correct manner)
+	frag_texcoord = texcoord;
 
 	// Transform position, including projection matrix
 	// Note: gl_Position is a default output variable containing

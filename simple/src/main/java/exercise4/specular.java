@@ -56,10 +56,6 @@ public class specular {
 			} catch (IOException e) {
 				System.out.println("\n\nError ObjReader\n\n");
 			}
-			float[] c = new float[vertexData.getNumberOfVertices() * 3];
-			for (int i = 0; i < c.length; ++i)
-				c[i] = 1;
-			vertexData.addElement(c, VertexData.Semantic.COLOR, 3);
 
 			shape = new Shape(vertexData);
 			sceneManager.addShape(shape);

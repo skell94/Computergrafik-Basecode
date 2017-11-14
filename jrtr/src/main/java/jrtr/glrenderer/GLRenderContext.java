@@ -382,15 +382,16 @@ public class GLRenderContext implements RenderContext {
 					id = gl.glGetUniformLocation(activeShaderID, lightString);
 					if(id!=-1)
 						gl.glUniform4f(id, l.diffuse.x, l.diffuse.y, l.diffuse.z, 0.f);		// Set diffuse light
-					else
-						System.out.print("Could not get location of uniform variable " + lightString + "\n");
 					
 					lightString = "lightSpecular[" + nLights + "]";			
 					id = gl.glGetUniformLocation(activeShaderID, lightString);
 					if(id!=-1)
 						gl.glUniform4f(id, l.specular.x, l.specular.y, l.specular.z, 0.f);		// Set specular light
-					else
-						System.out.print("Could not get location of uniform variable " + lightString + "\n");
+					
+					lightString = "lightAmbient[" + nLights + "]";			
+					id = gl.glGetUniformLocation(activeShaderID, lightString);
+					if(id!=-1)
+						gl.glUniform4f(id, l.ambient.x, l.ambient.y, l.ambient.z, 0.f);		// Set ambient light
 					
 					nLights++;
 				}

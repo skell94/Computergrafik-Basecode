@@ -19,7 +19,7 @@ import java.util.TimerTask;
  * Implements a simple application that opens a 3D rendering window and shows a
  * rotating cube.
  */
-public class twoSources {
+public class texture {
 	static RenderPanel renderPanel;
 	static RenderContext renderContext;
 	static Shader normalShader;
@@ -51,7 +51,7 @@ public class twoSources {
 			sceneManager = new SimpleSceneManager();
 			VertexData vertexData = renderContext.makeVertexData(0);
 			try {
-				vertexData = ObjReader.read("../obj/buddha_smooth.obj", 1, renderContext);
+				vertexData = ObjReader.read("../obj/teapot_texcoords.obj", 1, renderContext);
 
 			} catch (IOException e) {
 				System.out.println("\n\nError ObjReader\n\n");
@@ -71,12 +71,14 @@ public class twoSources {
 			lightRed.type = Light.Type.POINT;
 			lightRed.position = new Vector3f(3.f, 1.f, 3.f);
 			lightRed.diffuse = new Vector3f(0.1f, 0.f, 0.f);
+			lightRed.ambient = new Vector3f(0.01f, 0f, 0f);
 			sceneManager.addLight(lightRed);
 			
 			Light lightWhite = new Light();
 			lightWhite.type = Light.Type.POINT;
 			lightWhite.position = new Vector3f(-5.f, 0.f, 3.f);
 			lightWhite.diffuse = new Vector3f(0.2f, 0.2f, 0.2f);
+			lightWhite.ambient = new Vector3f(0.05f, 0.05f, 0.05f);
 			sceneManager.addLight(lightWhite);
 
 			// Add the scene to the renderer
@@ -85,7 +87,7 @@ public class twoSources {
 			// Load some more shaders
 			normalShader = renderContext.makeShader();
 			try {
-				normalShader.load("../jrtr/shaders/first.vert", "../jrtr/shaders/first.frag");
+				normalShader.load("../jrtr/shaders/third.vert", "../jrtr/shaders/third.frag");
 			} catch (Exception e) {
 				System.out.print("Problem with shader:\n");
 				System.out.print(e.getMessage());
@@ -94,13 +96,15 @@ public class twoSources {
 			// Make a material that can be used for shading
 			material = new Material();
 			material.shader = normalShader;
-			material.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
+			material.shininess = 10;
+//			material.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
 //			material.diffuse = new Vector3f(0f, 1f, 0f);
 //			material.diffuse = new Vector3f(0f, 0f, 1f);
 //			material.diffuse = new Vector3f(0.5f, 0.5f, 0f);
 			material.diffuseMap = renderContext.makeTexture();
 			try {
-				material.diffuseMap.load("../textures/plant.jpg");
+				material.diffuseMap.load("../textures/wood.jpg");
+//				material.diffuseMap.load("../textures/grass.jpg");
 			} catch (Exception e) {
 				System.out.print("Could not load texture.\n");
 				System.out.print(e.getMessage());

@@ -28,7 +28,7 @@ void main()
 	// so we transform the normal to camera coordinates, and we don't transform
 	// the light direction, i.e., it stays in camera coordinates
 	frag_color = vec4(0,0,0,0);
-	for(int i=0; i<nLights || i<8; ++i){
+	for(int i=0; i<nLights && i<8; ++i){
 		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * (lightPoint[i] - position)),0) * materialDiffuse * lightDiffuse[i];
 	}
 
