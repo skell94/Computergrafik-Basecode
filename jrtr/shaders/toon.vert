@@ -8,33 +8,29 @@ uniform mat4 projection;
 uniform mat4 modelview;
 uniform mat4 camera;
 uniform vec4 cameraPoint;
-uniform vec4 materialDiffuse;
-uniform vec4 materialSpecular;
-uniform float materialShininess;
-uniform vec4 lightPoint[8];
-uniform vec4 lightDiffuse[8];
-uniform vec4 lightSpecular[8];
+uniform vec4 lightPoint;
 uniform int nLights;
 
 // Input vertex attributes; passed in from host program to shader
 // via vertex buffer objects
 in vec3 normal;
 in vec4 position;
+in vec4 color;
 
 // Output variables for fragment shader
+out float ndotl[8];
 out vec4 frag_color;
 
 void main()
 {
-	frag_color = vec4(0,0,0,0);
 	for(int i=0; i<nLights && i<8; ++i){
 		// compute h vector
-		vec4 e, h, lightDirection;
+		vec4 lightDirection;
 		lightDirection = normalize(lightPoint[i] - position);
-		e = cameraPoint - position;
-		h = (lightDirection + e)/length(lightDirection + e);
-		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * lightDirection),0) * materialDiffuse * lightDiffuse[i] + pow(max(dot(transpose(inverse(modelview)) * vec4(normal, 0), camera * h),0), materialShininess) * materialSpecular * lightSpecular[i];
+		ndotl[i] = max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * -lightDirection),0);
 	}
+
+	frag_color = color;
 
 	// Transform position, including projection matrix
 	// Note: gl_Position is a default output variable containing

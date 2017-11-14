@@ -29,7 +29,7 @@ void main()
 	// the light direction, i.e., it stays in camera coordinates
 	frag_color = vec4(0,0,0,0);
 	for(int i=0; i<nLights && i<8; ++i){
-		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * (lightPoint[i] - position)),0) * materialDiffuse * lightDiffuse[i];
+		frag_color += max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * normalize(lightPoint[i] - position)),0) * materialDiffuse * lightDiffuse[i];
 	}
 
 	// Transform position, including projection matrix

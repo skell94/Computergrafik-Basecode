@@ -32,7 +32,7 @@ void main()
 	for(int i=0; i<nLights && i<8; ++i){
 		// compute h vector
 		vec4 e, h, lightDirection;
-		lightDirection = lightPoint[i] - position;
+		lightDirection = normalize(lightPoint[i] - position);
 		e = cameraPoint - position;
 		h = (lightDirection + e)/length(lightDirection + e);
 		ndotl[i] = max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * lightDirection),0);
