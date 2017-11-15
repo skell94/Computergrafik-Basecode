@@ -264,15 +264,27 @@ public class GLRenderContext implements RenderContext {
 		// the transformation matrix of the object
 		Matrix4f modelview = new Matrix4f(sceneManager.getCamera()
 				.getCameraMatrix());
+		Matrix4f normalview = (Matrix4f) modelview.clone();
+		
 		modelview.mul(transformation);
+		
+		Matrix4f nTransform = (Matrix4f) transformation.clone();
+		nTransform.invert();
+		nTransform.transpose();
+		
+		normalview.mul(nTransform);
+		
 
-		// Set modelview, camera and projection matrices in shader
+		// Set modelview, normalview, camera and projection matrices in shader
 		gl.glUniformMatrix4fv(
 				gl.glGetUniformLocation(activeShaderID, "camera"), 1, false,
 				transformationToFloat16(sceneManager.getCamera().getCameraMatrix()), 0);
 		gl.glUniformMatrix4fv(
 				gl.glGetUniformLocation(activeShaderID, "modelview"), 1, false,
 				transformationToFloat16(modelview), 0);
+		gl.glUniformMatrix4fv(
+				gl.glGetUniformLocation(activeShaderID, "normalview"), 1, false,
+				transformationToFloat16(normalview), 0);
 		gl.glUniformMatrix4fv(gl.glGetUniformLocation(activeShaderID,
 				"projection"), 1, false, transformationToFloat16(sceneManager
 				.getFrustum().getProjectionMatrix()), 0);
@@ -293,12 +305,6 @@ public class GLRenderContext implements RenderContext {
 			
 			// Identifier for shader variables
 			int id;
-			
-			// Pass diffuse material coefficient to shader
-			String cameraString = "cameraPoint";			
-			id = gl.glGetUniformLocation(activeShaderID, cameraString);
-			if(id!=-1)
-				gl.glUniform4f(id, sceneManager.getCamera().getCenterOfProjection().x, sceneManager.getCamera().getCenterOfProjection().y, sceneManager.getCamera().getCenterOfProjection().y, 0.f);		// Set light direction
 			
 			// Activate the shader
 			useShader(m.shader);

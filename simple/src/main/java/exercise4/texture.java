@@ -69,15 +69,14 @@ public class texture {
 			
 			Light lightRed = new Light();
 			lightRed.type = Light.Type.POINT;
-			lightRed.position = new Vector3f(3.f, 1.f, 3.f);
-			lightRed.diffuse = new Vector3f(0.1f, 0.f, 0.f);
+			lightRed.position = new Vector3f(3.f, 0.f, 0.f);
+			lightRed.diffuse = new Vector3f(0.5f, 0.f, 0.f);
 			lightRed.ambient = new Vector3f(0.01f, 0f, 0f);
 			sceneManager.addLight(lightRed);
 			
 			Light lightWhite = new Light();
 			lightWhite.type = Light.Type.POINT;
-			lightWhite.position = new Vector3f(-5.f, 0.f, 3.f);
-			lightWhite.diffuse = new Vector3f(0.2f, 0.2f, 0.2f);
+			lightWhite.position = new Vector3f(-3.f, 0.f, 0.f);
 			lightWhite.ambient = new Vector3f(0.05f, 0.05f, 0.05f);
 			sceneManager.addLight(lightWhite);
 
@@ -96,7 +95,7 @@ public class texture {
 			// Make a material that can be used for shading
 			material = new Material();
 			material.shader = normalShader;
-			material.shininess = 10;
+			material.shininess = 30f;
 //			material.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
 //			material.diffuse = new Vector3f(0f, 1f, 0f);
 //			material.diffuse = new Vector3f(0f, 0f, 1f);

@@ -17,9 +17,9 @@ void main()
 {
 	frag_shaded = vec4(0,0,0,0);
 	for(int i=0; i<nLights && i < 8; ++i){
-		if(ndotl[i] > 0.65){
+		if(ndotl[i] > 0.85){
 			frag_shaded += 1 * materialDiffuse * lightDiffuse[i];
-		} else if(ndotl[i] > 0.3){
+		} else if(ndotl[i] > 0.5){
 			frag_shaded += 0.6 * materialDiffuse * lightDiffuse[i];
 		} else {
 			frag_shaded += 0.25 * materialDiffuse * lightDiffuse[i];

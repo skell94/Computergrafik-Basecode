@@ -70,7 +70,6 @@ public class toon {
 			Light lightWhite = new Light();
 			lightWhite.type = Light.Type.POINT;
 			lightWhite.position = new Vector3f(-3.f, 0.f, 3.f);
-			lightWhite.diffuse = new Vector3f(0.2f, 0.2f, 0.2f);
 			sceneManager.addLight(lightWhite);
 
 			// Add the scene to the renderer
@@ -91,7 +90,7 @@ public class toon {
 			material.shininess = 10;
 //			material.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
 			material.diffuse = new Vector3f(0.5f, 1f, 0f);
-//			material.diffuse = new Vector3f(0f, 0f, 1f);
+			material.diffuse = new Vector3f(0.4f, 0.8f, 1f);
 //			material.diffuse = new Vector3f(0.5f, 0.5f, 0f);
 			material.diffuseMap = renderContext.makeTexture();
 			try {

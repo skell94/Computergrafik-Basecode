@@ -6,9 +6,9 @@
 // variants of glUniform*
 uniform mat4 projection;
 uniform mat4 modelview;
+uniform mat4 normalview;
 uniform mat4 camera;
-uniform vec4 cameraPoint;
-uniform vec4 lightPoint;
+uniform vec4 lightPoint[8];
 uniform int nLights;
 
 // Input vertex attributes; passed in from host program to shader
@@ -26,8 +26,8 @@ void main()
 	for(int i=0; i<nLights && i<8; ++i){
 		// compute h vector
 		vec4 lightDirection;
-		lightDirection = normalize(lightPoint[i] - position);
-		ndotl[i] = max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * -lightDirection),0);
+		lightDirection = normalize(camera * lightPoint[i] - modelview * position);
+		ndotl[i] = max(dot(normalview * vec4(normal,0), lightDirection),0);
 	}
 
 	frag_color = color;

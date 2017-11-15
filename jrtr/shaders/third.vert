@@ -6,8 +6,8 @@
 // variants of glUniform*
 uniform mat4 projection;
 uniform mat4 modelview;
+uniform mat4 normalview;
 uniform mat4 camera;
-uniform vec4 cameraPoint;
 uniform vec4 materialDiffuse;
 uniform vec4 materialSpecular;
 uniform float materialShininess;
@@ -32,11 +32,11 @@ void main()
 	for(int i=0; i<nLights && i<8; ++i){
 		// compute h vector
 		vec4 e, h, lightDirection;
-		lightDirection = normalize(lightPoint[i] - position);
-		e = cameraPoint - position;
+		lightDirection = normalize(camera * lightPoint[i] - modelview * position);
+		e = -normalize(modelview * position);
 		h = (lightDirection + e)/length(lightDirection + e);
-		ndotl[i] = max(dot(transpose(inverse(modelview)) * vec4(normal,0), camera * lightDirection),0);
-		ndothpows[i] = pow(max(dot(transpose(inverse(modelview)) * vec4(normal, 0), camera * h),0), materialShininess);
+		ndotl[i] = max(dot(normalview * vec4(normal,0), lightDirection),0);
+		ndothpows[i] = pow(max(dot(normalview * vec4(normal, 0), h),0), materialShininess);
 	}
 
 	// Pass texture coordiantes to fragment shader, OpenGL automatically
