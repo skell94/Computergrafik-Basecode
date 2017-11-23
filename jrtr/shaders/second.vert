@@ -18,23 +18,16 @@ uniform int nLights;
 
 // Input vertex attributes; passed in from host program to shader
 // via vertex buffer objects
-in vec3 normal;
 in vec4 position;
+in vec3 normal;
 
-// Output variables for fragment shader
-out vec4 frag_color;
+out vec4 frag_position;
+out vec4 frag_normal;
 
 void main()
 {
-	frag_color = vec4(0,0,0,0);
-	for(int i=0; i<nLights && i<8; ++i){
-		// compute h vector
-		vec4 e, h, lightDirection;
-		lightDirection = normalize(camera * lightPoint[i] - modelview* position);
-		e = -normalize(modelview * position);
-		h = (lightDirection + e)/length(lightDirection + e);
-		frag_color += max(dot(normalview * vec4(normal,0), lightDirection),0) * materialDiffuse * lightDiffuse[i] + pow(max(dot(normalview * vec4(normal, 0), h),0), materialShininess) * materialSpecular * lightSpecular[i];
-	}
+	frag_position = modelview * position;
+	frag_normal = normalview * vec4(normal, 0);
 
 	// Transform position, including projection matrix
 	// Note: gl_Position is a default output variable containing

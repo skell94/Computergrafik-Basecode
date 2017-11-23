@@ -265,6 +265,8 @@ public class GLRenderContext implements RenderContext {
 		Matrix4f modelview = new Matrix4f(sceneManager.getCamera()
 				.getCameraMatrix());
 		Matrix4f normalview = (Matrix4f) modelview.clone();
+		normalview.invert();
+		normalview.transpose();
 		
 		modelview.mul(transformation);
 		
@@ -274,7 +276,6 @@ public class GLRenderContext implements RenderContext {
 		
 		normalview.mul(nTransform);
 		
-
 		// Set modelview, normalview, camera and projection matrices in shader
 		gl.glUniformMatrix4fv(
 				gl.glGetUniformLocation(activeShaderID, "camera"), 1, false,

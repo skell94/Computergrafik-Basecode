@@ -8,28 +8,28 @@ uniform mat4 projection;
 uniform mat4 modelview;
 uniform mat4 normalview;
 uniform mat4 camera;
+uniform vec4 materialDiffuse;
+uniform vec4 materialSpecular;
+uniform float materialShininess;
 uniform vec4 lightPoint[8];
+uniform vec4 lightDiffuse[8];
+uniform vec4 lightSpecular[8];
 uniform int nLights;
 
 // Input vertex attributes; passed in from host program to shader
 // via vertex buffer objects
-in vec3 normal;
 in vec4 position;
+in vec3 normal;
 in vec4 color;
 
-// Output variables for fragment shader
-out float ndotl[8];
+out vec4 frag_position;
+out vec4 frag_normal;
 out vec4 frag_color;
 
 void main()
 {
-	for(int i=0; i<nLights && i<8; ++i){
-		// compute h vector
-		vec4 lightDirection;
-		lightDirection = normalize(camera * lightPoint[i] - modelview * position);
-		ndotl[i] = max(dot(normalview * vec4(normal,0), lightDirection),0);
-	}
-
+	frag_position = modelview * position;
+	frag_normal = normalview * vec4(normal, 0);
 	frag_color = color;
 
 	// Transform position, including projection matrix

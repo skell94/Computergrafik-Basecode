@@ -3,11 +3,15 @@ package exercise5;
 import jrtr.*;
 import jrtr.glrenderer.*;
 import utilities.ShapeHelpers;
+import utilities.Vector3fPlus;
 import jrtr.gldeferredrenderer.*;
 
 import javax.swing.*;
 import java.awt.event.*;
 import javax.vecmath.*;
+
+import exercise2.airplane.SimpleKeyListener;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,6 +36,7 @@ public class robot
 	static Group leftHip;
 	static Group rightKnee;
 	static Group leftKnee;
+	static Group leftHand;
 
 	/**
 	 * An extension of {@link GLRenderPanel} or {@link SWRenderPanel} to 
@@ -50,23 +55,34 @@ public class robot
 			renderContext = r;
 								
 			sceneManager = new GraphSceneManager();
+			
+			Camera camera = new Camera(new Vector3f(0, 5, 20), new Vector3f(0, 0, 0), new Vector3f(0, 4, -1));
+			sceneManager.setCamera(camera);
+			
+			Group ground = new TransformGroup();
 			body = new TransformGroup();
 			neck = new TransformGroup();
 			rightShoulder = new TransformGroup();
 			leftShoulder = new TransformGroup();
 			rightElbow = new TransformGroup();
 			leftElbow = new TransformGroup();
+			leftHand = new TransformGroup();
 			rightHip = new TransformGroup();
 			leftHip = new TransformGroup();
 			rightKnee = new TransformGroup();
 			leftKnee = new TransformGroup();
 			
+			Shape groundShape = ShapeHelpers.createPlane(renderContext, 50, 50, new Vector3f(1, 1, 1));
 			Shape bodyShape = ShapeHelpers.createCylinder(renderContext, 50, 2, 0.5f, new Vector3f(0, 0, 1), new Vector3f(0, 0, 1));
 			Shape headShape = ShapeHelpers.createCylinder(renderContext, 50, 0.5f, 0.25f, new Vector3f(0, 1, 0), new Vector3f(0, 1, 0));
 			Shape upperArmShape = ShapeHelpers.createCylinder(renderContext, 50, 1.1f, 0.15f, new Vector3f(1, 1, 0), new Vector3f(1, 1, 0));
 			Shape lowerArmShape = ShapeHelpers.createCylinder(renderContext, 50, 1.1f, 0.15f, new Vector3f(1, 0, 0), new Vector3f(1, 0, 0));
 			Shape upperLegShape = ShapeHelpers.createCylinder(renderContext, 50, 1.1f, 0.15f, new Vector3f(0, 1, 1), new Vector3f(0, 1, 1));
 			Shape lowerLegShape = ShapeHelpers.createCylinder(renderContext, 50, 1.1f, 0.15f, new Vector3f(1, 0, 1), new Vector3f(1, 0, 1));
+			
+			Light handLight = new Light();
+			handLight.position = new Vector3f(0,0,0);
+			handLight.type = Light.Type.POINT;
 			
 			Matrix4f t, transl = new Matrix4f(), rot = new Matrix4f();
 			rot.rotX((float)-Math.PI/2);
@@ -96,9 +112,14 @@ public class robot
 			t.mul(transl);
 			lowerLegShape.setTransformation(t);
 			
-			t = body.getTransformation();
-			transl.set(new Vector3f(2, 0, 0));
+			t = ground.getTransformation();
+			transl.set(new Vector3f(0, 0, -3.5f));
 			t.mul(rot);
+			t.mul(transl);
+			ground.setTransformation(t);
+			
+			t = body.getTransformation();
+			transl.set(new Vector3f(5, 0, 3.5f));
 			t.mul(transl);
 			body.setTransformation(t);
 			
@@ -119,13 +140,22 @@ public class robot
 			
 			t = rightElbow.getTransformation();
 			transl.set(new Vector3f(0, 0, -1.2f));
+			rot.rotX(-(float)(5*Math.PI/8));
 			t.mul(transl);
+			t.mul(rot);
 			rightElbow.setTransformation(t);
 			
 			t = leftElbow.getTransformation();
 			transl.set(new Vector3f(0, 0, -1.2f));
 			t.mul(transl);
+			t.mul(rot);
 			leftElbow.setTransformation(t);
+			
+			t = leftHand.getTransformation();
+			transl.set(new Vector3f(0, 0, -1.2f));
+			t.mul(transl);
+			t.mul(rot);
+			leftHand.setTransformation(t);
 			
 			t = rightHip.getTransformation();
 			transl.set(new Vector3f(-0.35f, 0, -1.1f));
@@ -139,13 +169,18 @@ public class robot
 			
 			t = rightKnee.getTransformation();
 			transl.set(new Vector3f(0, 0, -1.2f));
+			rot.rotX((float)(3*Math.PI/4));
 			t.mul(transl);
+			t.mul(rot);
 			rightKnee.setTransformation(t);
 			
 			t = leftKnee.getTransformation();
 			transl.set(new Vector3f(0, 0, -1.2f));
 			t.mul(transl);
 			leftKnee.setTransformation(t);
+			
+			ground.addChild(new ShapeNode(groundShape));
+			ground.addChild(body);
 			
 			body.addChild(new ShapeNode(bodyShape));
 			body.addChild(neck);
@@ -165,6 +200,9 @@ public class robot
 			leftShoulder.addChild(leftElbow);
 			
 			leftElbow.addChild(new ShapeNode(lowerArmShape));
+			leftElbow.addChild(leftHand);
+			
+			leftHand.addChild(new LightNode(handLight));
 			
 			rightHip.addChild(new ShapeNode(upperLegShape));
 			rightHip.addChild(rightKnee);
@@ -176,38 +214,58 @@ public class robot
 			
 			leftKnee.addChild(new ShapeNode(lowerLegShape));
 			
-			sceneManager.setRoot(body);
+			sceneManager.setRoot(ground);
 
 			// Add the scene to the renderer
 			renderContext.setSceneManager(sceneManager);
 			
-			// Load some more shaders
-		    Shader normalShader = renderContext.makeShader();
-		    try {
-		    	normalShader.load("../jrtr/shaders/normal.vert", "../jrtr/shaders/normal.frag");
-		    } catch(Exception e) {
-		    	System.out.print("Problem with shader:\n");
-		    	System.out.print(e.getMessage());
-		    }
-	
-		    Shader diffuseShader = renderContext.makeShader();
-		    try {
-		    	diffuseShader.load("../jrtr/shaders/diffuse.vert", "../jrtr/shaders/diffuse.frag");
-		    } catch(Exception e) {
-		    	System.out.print("Problem with shader:\n");
-		    	System.out.print(e.getMessage());
-		    }
+//			Light lightWhite = new Light();
+//			lightWhite.type = Light.Type.POINT;
+//			lightWhite.position = new Vector3f(5.f, 5.f, 20.f);
+//			sceneManager.addLight(lightWhite);
+			
+			Light lightWhite2 = new Light();
+			lightWhite2.type = Light.Type.POINT;
+			lightWhite2.position = new Vector3f(-5.f, 5.f, 20.f);
+			lightWhite2.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
+			sceneManager.addLight(lightWhite2);
+			
+//			Light lightWhite3 = new Light();
+//			lightWhite3.type = Light.Type.POINT;
+//			lightWhite3.position = new Vector3f(0.f, 5.f, 0.f);
+//			sceneManager.addLight(lightWhite3);
 
-		    // Make a material that can be used for shading
-			Material material = new Material();
-			material.shader = diffuseShader;
-			material.diffuseMap = renderContext.makeTexture();
+			// Add the scene to the renderer
+			renderContext.setSceneManager(sceneManager);
+
+			// Load some more shaders
+			Shader normalShader = renderContext.makeShader();
 			try {
-				material.diffuseMap.load("../textures/plant.jpg");
-			} catch(Exception e) {				
-				System.out.print("Could not load texture.\n");
+				normalShader.load("../jrtr/shaders/second.vert", "../jrtr/shaders/second.frag");
+			} catch (Exception e) {
+				System.out.print("Problem with shader:\n");
 				System.out.print(e.getMessage());
 			}
+
+			// Make a material that can be used for shading
+			Material material = new Material();
+			material.shader = normalShader;
+			material.diffuse = new Vector3f(0, 0, 1);
+			
+			// Make a material that can be used for shading
+			Material material2 = new Material();
+			material2.shader = normalShader;
+			material2.diffuse = new Vector3f(0, 1, 0);
+			
+			groundShape.setMaterial(material2);
+			bodyShape.setMaterial(material);
+			headShape.setMaterial(material);
+			upperArmShape.setMaterial(material);
+			lowerArmShape.setMaterial(material);
+			upperLegShape.setMaterial(material);
+			lowerLegShape.setMaterial(material);
+			
+			renderContext.useShader(normalShader);
 
 			// Register a timer task
 		    Timer timer = new Timer();
@@ -223,14 +281,16 @@ public class robot
 	public static class AnimationTask extends TimerTask
 	{
 		private int swingCounter = 45;
-		private boolean forwards = true;
+		private int kneeBend = 0;
+		private boolean forwards = false;
+		private boolean kneeBending = false;
 		
 		public void run()
 		{
     		Matrix4f t, swingRotForwards = new Matrix4f(), swingRotBackwards = new Matrix4f(), bodyRot = new Matrix4f();
     		swingRotForwards.rotX(basicstep);
     		swingRotBackwards.rotX(-basicstep);
-    		bodyRot.rotY(basicstep);
+    		bodyRot.rotZ(basicstep/2);
     		
     		t = body.getTransformation();
     		t.invert();
@@ -253,23 +313,53 @@ public class robot
     		rightShoulder.setTransformation(t);
     		
     		t= leftHip.getTransformation();
-    		if(!forwards)
+    		if(!forwards) {
     			t.mul(swingRotForwards);
-    		else
+    		} else {
     			t.mul(swingRotBackwards);
+    			Matrix4f t2 = leftKnee.getTransformation();
+    			if(kneeBending) {
+    				t2.mul(swingRotForwards);
+    				t2.mul(swingRotForwards);
+    				t2.mul(swingRotForwards);
+    			} else {
+    				t2.mul(swingRotBackwards);
+    				t2.mul(swingRotBackwards);
+    				t2.mul(swingRotBackwards);
+    			}
+    			leftKnee.setTransformation(t2);
+    		}
     		leftHip.setTransformation(t);
     		
     		t= rightHip.getTransformation();
-    		if(forwards)
+    		if(forwards) {
     			t.mul(swingRotForwards);
-    		else
+    		} else { 
     			t.mul(swingRotBackwards);
+    			Matrix4f t2 = rightKnee.getTransformation();
+    			if(kneeBending) {
+    				t2.mul(swingRotForwards);
+    				t2.mul(swingRotForwards);
+    				t2.mul(swingRotForwards);
+    			} else {
+    				t2.mul(swingRotBackwards);
+    				t2.mul(swingRotBackwards);
+    				t2.mul(swingRotBackwards);
+    			}
+    			rightKnee.setTransformation(t2);
+    		}
     		rightHip.setTransformation(t);
     		
     		swingCounter++;
     		if(swingCounter == 90) {
-    			swingCounter = 1;
+    			swingCounter = 0;
     			forwards = !forwards;
+    		}
+    		
+    		kneeBend++;
+    		if(kneeBend == 45) {
+    			kneeBend = 0;
+    			kneeBending = !kneeBending;
     		}
     		
     		// Trigger redrawing of the render window

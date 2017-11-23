@@ -30,6 +30,10 @@ public abstract class Group implements Node {
 	public Shape getShape() {
 		return null;
 	}
+	
+	public Light getLight() {
+		return null;
+	}
 
 	public void addChild(Node child) {
 		children.add(child);

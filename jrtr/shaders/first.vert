@@ -19,7 +19,8 @@ in vec3 normal;
 in vec4 position;
 
 // Output variables for fragment shader
-out vec4 frag_color;
+out vec4 frag_position;
+out vec4 frag_normal;
 
 void main()
 {		
@@ -28,10 +29,8 @@ void main()
 	// Note: here we assume "lightDirection" is specified in camera coordinates,
 	// so we transform the normal to camera coordinates, and we don't transform
 	// the light direction, i.e., it stays in camera coordinates
-	frag_color = vec4(0,0,0,0);
-	for(int i=0; i<nLights && i<8; ++i){
-		frag_color += max(dot(normalview * vec4(normal,0), normalize(camera * lightPoint[i] - modelview * position)),0) * materialDiffuse * lightDiffuse[i];
-	}
+	frag_position = modelview * position;
+	frag_normal = normalize(normalview * vec4(normal, 0));
 
 	// Transform position, including projection matrix
 	// Note: gl_Position is a default output variable containing

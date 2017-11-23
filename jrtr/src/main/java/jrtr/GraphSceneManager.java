@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Stack;
 
-import javax.vecmath.Matrix4f;
+import javax.vecmath.*;
 
 public class GraphSceneManager implements SceneManagerInterface {
 	
@@ -57,12 +57,53 @@ public class GraphSceneManager implements SceneManagerInterface {
 	
 	public Iterator<Light> lightIterator()
 	{
-		return lights.iterator();
+		return new GraphLightIterator(this);
 	}
 	
 	public SceneManagerIterator iterator()
 	{
 		return new GraphSceneManagerItr(this);
+	}
+	
+	private class GraphLightIterator implements Iterator<Light>{
+		
+		private Iterator<Light> iterator;
+		LinkedList<Light> lights;
+		
+		public GraphLightIterator(GraphSceneManager sceneManager) {
+			lights = new LinkedList<Light>(sceneManager.lights);
+			Matrix4f t = new Matrix4f();
+			t.setIdentity();
+			findLights(sceneManager.getRoot(), t);
+			iterator = lights.iterator();
+		}
+
+		public boolean hasNext() {
+			return iterator.hasNext();
+		}
+
+		public Light next() {
+			return iterator.next();
+		}
+		
+		private void findLights(Node node, Matrix4f t) {
+			if(node instanceof Group) {
+				t.mul(node.getTransformation());
+				ListIterator<Node> childrenIterator = node.getChildren().listIterator();
+				while(childrenIterator.hasNext()) {
+					findLights(childrenIterator.next(), new Matrix4f(t));
+				}
+			} else {
+				if(node instanceof LightNode) {
+					Light light = node.getLight().clone();
+					Vector4f newPosition = new Vector4f(light.position.x, light.position.y, light.position.z, 1);
+					t.transform(newPosition);
+					light.position = new Vector3f(newPosition.x, newPosition.y, newPosition.z);
+					lights.add(light);
+				}
+			}
+		}
+		
 	}
 	
 	private class GraphSceneManagerItr implements SceneManagerIterator {
@@ -86,7 +127,7 @@ public class GraphSceneManager implements SceneManagerInterface {
 			StackItem peekedItem = items.peek();
 			
 			Shape shape = currentLeaf.getShape();
-			Matrix4f t = peekedItem.getTransformation();
+			Matrix4f t = new Matrix4f(peekedItem.getTransformation());
 			t.mul(shape.getTransformation());
 			
 			while(!items.empty()) {
@@ -112,11 +153,24 @@ public class GraphSceneManager implements SceneManagerInterface {
 				ListIterator<Node> iterator = nextNode.getChildren().listIterator();
 				t.mul(nextNode.getTransformation());
 				
-				items.push(new StackItem(t, iterator));
+				items.push(new StackItem(new Matrix4f(t), iterator));
 				
 				nextNode = iterator.next();
 			}
-			currentLeaf = nextNode;
+			if(nextNode.getShape() != null) {
+				currentLeaf = nextNode;
+			} else {
+				while(!items.empty()) {
+					StackItem peekedItem = items.peek();
+					if(peekedItem.getIterator().hasNext()) {
+						break;
+					}
+					items.pop();
+				}
+				if(!items.empty()) {
+					fillStack(items.peek().getIterator().next());
+				}
+			}
 		}
 		
 		private class StackItem {

@@ -11,5 +11,7 @@ public interface Node {
 	public LinkedList<Node> getChildren();
 	
 	public Shape getShape();
+	
+	public Light getLight();
 
 }
