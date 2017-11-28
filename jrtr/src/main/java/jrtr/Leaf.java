@@ -6,7 +6,7 @@ import javax.vecmath.Matrix4f;
 
 public abstract class Leaf implements Node {
 	
-	private Shape shape;
+	protected Shape shape;
 	private Light light;
 	
 	public Leaf(Shape shape) {

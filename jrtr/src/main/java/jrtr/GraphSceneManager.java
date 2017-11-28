@@ -108,22 +108,29 @@ public class GraphSceneManager implements SceneManagerInterface {
 	
 	private class GraphSceneManagerItr implements SceneManagerIterator {
 		
+		private Vector4f[] planes;
 		private Stack<StackItem> items;
 		private Node currentLeaf;
+		private int count;
 		
 		public GraphSceneManagerItr(GraphSceneManager sceneManager)
 		{
+			count = 0;
+			initPlanes();
 			items = new Stack<StackItem>();
 			fillStack(sceneManager.getRoot());
 		}
 		
 		public boolean hasNext()
 		{
+			if(items.empty())
+				System.out.println(count);
 			return !items.empty();
 		}
 		
 		public RenderItem next()
 		{
+			count++;
 			StackItem peekedItem = items.peek();
 			
 			Shape shape = currentLeaf.getShape();
@@ -157,20 +164,40 @@ public class GraphSceneManager implements SceneManagerInterface {
 				
 				nextNode = iterator.next();
 			}
-			if(nextNode.getShape() != null) {
-				currentLeaf = nextNode;
-			} else {
-				while(!items.empty()) {
-					StackItem peekedItem = items.peek();
-					if(peekedItem.getIterator().hasNext()) {
-						break;
-					}
-					items.pop();
-				}
-				if(!items.empty()) {
-					fillStack(items.peek().getIterator().next());
+			if(nextNode instanceof ShapeNode) {
+				boolean inside = true;
+				Matrix4f modelView = new Matrix4f(camera.getCameraMatrix());
+				modelView.mul(t);
+				for(int i=0; i<planes.length; ++i)
+					inside = inside && ((ShapeNode) nextNode).insidePlane(modelView, planes[i]);
+				if(inside) {
+					currentLeaf = nextNode;
+					return;
 				}
 			}
+			
+			while(!items.empty()) {
+				StackItem peekedItem = items.peek();
+				if(peekedItem.getIterator().hasNext()) {
+					break;
+				}
+				items.pop();
+			}
+			if(!items.empty()) {
+				fillStack(items.peek().getIterator().next());
+			}
+		}
+		
+		private void initPlanes() {
+			Matrix4f p = new Matrix4f(frustum.getProjectionMatrix());
+			
+			planes = new Vector4f[6];
+			planes[0] = new Vector4f(-p.m30-p.m00, -p.m31-p.m01, -p.m32-p.m02, -p.m33-p.m03);
+			planes[1] = new Vector4f(-p.m30+p.m00, -p.m31+p.m01, -p.m32+p.m02, -p.m33+p.m03);
+			planes[2] = new Vector4f(-p.m30-p.m10, -p.m31-p.m11, -p.m32-p.m12, -p.m33-p.m13);
+			planes[3] = new Vector4f(-p.m30+p.m10, -p.m31+p.m11, -p.m32+p.m12, -p.m33+p.m13);
+			planes[4] = new Vector4f(-p.m30-p.m20, -p.m31-p.m21, -p.m32-p.m22, -p.m33-p.m23);
+			planes[5] = new Vector4f(-p.m30+p.m20, -p.m31+p.m21, -p.m32+p.m22, -p.m33+p.m23);
 		}
 		
 		private class StackItem {

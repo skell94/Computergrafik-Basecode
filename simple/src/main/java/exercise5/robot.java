@@ -200,7 +200,7 @@ public class robot
 			leftShoulder.addChild(leftElbow);
 			
 			leftElbow.addChild(new ShapeNode(lowerArmShape));
-			leftElbow.addChild(leftHand);
+//			leftElbow.addChild(leftHand);
 			
 			leftHand.addChild(new LightNode(handLight));
 			
