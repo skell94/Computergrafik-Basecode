@@ -154,8 +154,8 @@ public abstract class ShapeHelpers {
 				normal.normalize();
 				
 				if(i>0) {
-					iList.addAll(Arrays.asList(i*rotationSteps + j, i*(rotationSteps-1) + j, i*(rotationSteps-1) + ((j+1)%rotationSteps)));
-					iList.addAll(Arrays.asList(i*rotationSteps + j, i*(rotationSteps-1) + ((j+1)%rotationSteps), i*rotationSteps + ((j+1)%rotationSteps)));
+					iList.addAll(Arrays.asList(i*rotationSteps + j, (i-1)*rotationSteps + ((j+1)%rotationSteps), (i-1)*rotationSteps + j));
+					iList.addAll(Arrays.asList(i*rotationSteps + j, i*rotationSteps + ((j+1)%rotationSteps), (i-1)*rotationSteps + ((j+1)%rotationSteps)));
 				}
 			}
 		}
