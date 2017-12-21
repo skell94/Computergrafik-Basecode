@@ -123,8 +123,6 @@ public class GraphSceneManager implements SceneManagerInterface {
 		
 		public boolean hasNext()
 		{
-			if(items.empty())
-				System.out.println(count);
 			return !items.empty();
 		}
 		
@@ -168,8 +166,8 @@ public class GraphSceneManager implements SceneManagerInterface {
 				boolean inside = true;
 				Matrix4f modelView = new Matrix4f(camera.getCameraMatrix());
 				modelView.mul(t);
-				for(int i=0; i<planes.length; ++i)
-					inside = inside && ((ShapeNode) nextNode).insidePlane(modelView, planes[i]);
+//				for(int i=0; i<planes.length; ++i)
+//					inside = inside && ((ShapeNode) nextNode).insidePlane(modelView, planes[i]);
 				if(inside) {
 					currentLeaf = nextNode;
 					return;

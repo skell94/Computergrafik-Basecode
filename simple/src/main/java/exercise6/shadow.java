@@ -2,7 +2,6 @@ package exercise6;
 
 import jrtr.*;
 import jrtr.glrenderer.*;
-import simple.simple.SimpleKeyListener;
 import utilities.ShapeHelpers;
 import utilities.Vector3fPlus;
 import jrtr.gldeferredrenderer.*;
@@ -13,6 +12,8 @@ import java.io.IOException;
 
 import javax.vecmath.*;
 
+import exercise6.brezier.SimpleKeyListener;
+
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,15 +22,16 @@ import java.util.TimerTask;
  * Implements a simple application that opens a 3D rendering window and shows a
  * rotating cube.
  */
-public class reflection {
+public class shadow {
 	static RenderPanel renderPanel;
 	static RenderContext renderContext;
 	static Shader normalShader;
 	static Shader diffuseShader;
 	static Material material;
-	static SimpleSceneManager sceneManager;
+	static GraphSceneManager sceneManager;
 	static Shape shape;
-	static float currentstep, basicstep;
+	static Light light;
+	static float currentstep, basicstep, zoomstep;
 	static final int WIDTH = 1000;
 	static final int HEIGHT = 1000;
 
@@ -48,7 +50,9 @@ public class reflection {
 		 */
 		public void init(RenderContext r) {
 			renderContext = r;
-			
+
+			// Make a scene manager and add the object
+			sceneManager = new GraphSceneManager();
 			VertexData vertexData = renderContext.makeVertexData(0);
 			try {
 				vertexData = ObjReader.read("../obj/sphere.obj", 1, renderContext);
@@ -56,11 +60,62 @@ public class reflection {
 			} catch (IOException e) {
 				System.out.println("\n\nError ObjReader\n\n");
 			}
-
-			// Make a scene manager and add the object
-			sceneManager = new SimpleSceneManager();
-			shape = new Shape(vertexData);
-			sceneManager.addShape(shape);
+			
+			Group ground = new TransformGroup();
+			Group sphere1 = new TransformGroup();
+			Group sphere2 = new TransformGroup();
+			Group sphere3 = new TransformGroup();
+			Group cylinder = new TransformGroup();
+			
+			Shape groundShape = ShapeHelpers.createPlane(renderContext, 3, 3, new Vector3f(1, 1, 1));
+			Shape sphereShape = new Shape(vertexData);
+			Shape cylinderShape = ShapeHelpers.createCylinder(renderContext, 50, 1f, 0.15f, new Vector3f(1, 1, 1), new Vector3f(1, 1, 1));
+			
+			Matrix4f t, transl = new Matrix4f(), rot = new Matrix4f();
+			rot.rotX((float)-Math.PI/2);
+			
+			t = sphereShape.getTransformation();
+			transl.set(0.25f);
+			t.mul(transl);
+			sphereShape.setTransformation(t);
+			
+			t = cylinderShape.getTransformation();
+			transl.set(new Vector3f(0, 0, 0.5f));
+			t.mul(transl);
+			cylinderShape.setTransformation(t);
+			
+			t = ground.getTransformation();
+			t.mul(rot);
+			t.mul(transl);
+			ground.setTransformation(t);
+			
+			t = sphere1.getTransformation();
+			transl.set(new Vector3f(0.1f, 0.6f, 0.4f));
+			t.mul(transl);
+			sphere1.setTransformation(t);
+			
+			t = sphere2.getTransformation();
+			transl.set(new Vector3f(0, -0.6f, 0.6f));
+			t.mul(transl);
+			sphere2.setTransformation(t);
+			
+			t = sphere3.getTransformation();
+			transl.set(new Vector3f(0.7f, 0, 0.5f));
+			t.mul(transl);
+			sphere3.setTransformation(t);
+			
+			ground.addChild(new ShapeNode(groundShape));
+			ground.addChild(sphere1);
+			ground.addChild(sphere2);
+			ground.addChild(sphere3);
+			ground.addChild(cylinder);
+			
+			sphere1.addChild(new ShapeNode(sphereShape));
+			sphere2.addChild(new ShapeNode(sphereShape));
+			sphere3.addChild(new ShapeNode(sphereShape));
+			cylinder.addChild(new ShapeNode(cylinderShape));
+			
+			sceneManager.setRoot(ground);
 
 			Frustum frustum = new Frustum(1.f, 100.f, 1.f, (float) (Math.PI / 3));
 			sceneManager.setFrustum(frustum);
@@ -69,17 +124,11 @@ public class reflection {
 					new Vector3f(0.f, 1.f, 0.f));
 			sceneManager.setCamera(camera);
 			
-			Light lightRed = new Light();
-			lightRed.type = Light.Type.POINT;
-			lightRed.position = new Vector3f(3.f, 1.f, 3.f);
-			lightRed.diffuse = new Vector3f(0.5f, 0.f, 0.f);
-			sceneManager.addLight(lightRed);
-			
-			Light lightWhite = new Light();
-			lightWhite.type = Light.Type.POINT;
-			lightWhite.position = new Vector3f(-5.f, 0.f, 3.f);
-			lightWhite.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
-			sceneManager.addLight(lightWhite);
+			light = new Light();
+			light.type = Light.Type.POINT;
+			light.position = new Vector3f(-5.f, 0.f, 3.f);
+			light.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
+			sceneManager.addLight(light);
 
 			// Add the scene to the renderer
 			renderContext.setSceneManager(sceneManager);
@@ -87,32 +136,33 @@ public class reflection {
 			// Load some more shaders
 			normalShader = renderContext.makeShader();
 			try {
-				normalShader.load("../jrtr/shaders/normal.vert", "../jrtr/shaders/normal.frag");
+				normalShader.load("../jrtr/shaders/first.vert", "../jrtr/shaders/first.frag");
 			} catch (Exception e) {
 				System.out.print("Problem with shader:\n");
 				System.out.print(e.getMessage());
 			}
-			
-			diffuseShader = renderContext.makeShader();
-		    try {
-		    	diffuseShader.load("../jrtr/shaders/diffuse.vert", "../jrtr/shaders/diffuse.frag");
-		    } catch(Exception e) {
-		    	System.out.print("Problem with shader:\n");
-		    	System.out.print(e.getMessage());
-		    }
 
 			// Make a material that can be used for shading
 			material = new Material();
-			material.shader = diffuseShader;
+			material.shader = normalShader;
+			material.shininess = 20f;
+//			material.diffuse = new Vector3f(0.5f, 0.5f, 0.5f);
+//			material.diffuse = new Vector3f(0f, 1f, 0f);
+//			material.diffuse = new Vector3f(0f, 0f, 1f);
+//			material.diffuse = new Vector3f(0.5f, 0.5f, 0f);
 			material.diffuseMap = renderContext.makeTexture();
 			try {
-				material.diffuseMap.load("../textures/wood.jpg");
+				material.diffuseMap.load("../textures/plant.jpg");
 			} catch (Exception e) {
 				System.out.print("Could not load texture.\n");
 				System.out.print(e.getMessage());
 			}
-			shape.setMaterial(material);
+			groundShape.setMaterial(material);
+			sphereShape.setMaterial(material);
+			cylinderShape.setMaterial(material);
 			renderContext.useShader(normalShader);
+			
+			zoomstep = 0.1f;
 		}
 	}
 
@@ -222,22 +272,32 @@ public class reflection {
 		{
 			switch(e.getKeyChar())
 			{
-				case 'n': {
-					// Remove material from shape, and set "normal" shader
-					shape.setMaterial(null);
-					renderContext.useShader(normalShader);
+				case 'w': {
+					Camera camera = sceneManager.getCamera();
+					Vector3f newCenter = camera.getCenterOfProjection();
+					float length = newCenter.length();
+					if(length > 1) {
+						newCenter.normalize();
+						newCenter.scale(length - zoomstep);
+					}
+					sceneManager.setCamera(new Camera(newCenter, camera.getLookAtPoint(), camera.getUpVector()));
 					break;
 				}
-				case 'm': {
-					// Set a material for more complex shading of the shape
-					if(shape.getMaterial() == null) {
-						shape.setMaterial(material);
-					} else
-					{
-						shape.setMaterial(null);
-						renderContext.useDefaultShader();
-					}
+				case 's': {
+					Camera camera = sceneManager.getCamera();
+					Vector3f newCenter = camera.getCenterOfProjection();
+					float length = newCenter.length();
+					newCenter.normalize();
+					newCenter.scale(length + zoomstep);
+					sceneManager.setCamera(new Camera(newCenter, camera.getLookAtPoint(), camera.getUpVector()));
 					break;
+				}
+				case 'l': {
+					Camera camera = sceneManager.getCamera();
+					Vector3f newPosition = (Vector3f) camera.getCenterOfProjection().clone();
+					newPosition.normalize();
+					newPosition.scale(5);
+					light.position = newPosition;
 				}
 			}
 			
@@ -254,6 +314,7 @@ public class reflection {
         }
 
 	}
+	
 	
 	/**
 	 * The main function opens a 3D rendering window, implemented by the class

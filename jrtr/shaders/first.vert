@@ -30,7 +30,7 @@ void main()
 	// so we transform the normal to camera coordinates, and we don't transform
 	// the light direction, i.e., it stays in camera coordinates
 	frag_position = modelview * position;
-	frag_normal = normalize(normalview * vec4(normal, 0));
+	frag_normal = normalize(modelview * vec4(normal, 0));
 
 	// Transform position, including projection matrix
 	// Note: gl_Position is a default output variable containing

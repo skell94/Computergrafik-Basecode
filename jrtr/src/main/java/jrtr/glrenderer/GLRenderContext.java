@@ -86,6 +86,8 @@ public class GLRenderContext implements RenderContext {
 
 		// Do some processing at the beginning of the frame
 		beginFrame();
+		
+//		createShadowMap();
 
 		// Traverse scene manager and draw everything
 		SceneManagerIterator iterator = sceneManager.iterator();
@@ -98,6 +100,18 @@ public class GLRenderContext implements RenderContext {
 
 		// Do some processing at the end of the frame
 		endFrame();
+	}
+
+	private void createShadowMap() {
+		// Load some more shaders
+		Shader shadowShader = makeShader();
+		try {
+			shadowShader.load("../jrtr/shaders/shadowMap.vert", "../jrtr/shaders/shadowMap.frag");
+		} catch (Exception e) {
+			System.out.print("Problem with shader:\n");
+			System.out.print(e.getMessage());
+		}
+		useShader(shadowShader);
 	}
 
 	/**
